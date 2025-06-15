@@ -256,30 +256,23 @@ def get_week_dates(start_date_str, end_date_str):
     return dates
 
 if __name__ == "__main__":
-    start_date = "2025-05-27"
-    end_date = "2025-08-31"
+    # 오늘 날짜를 기준으로 크롤링
+    today = datetime.now().strftime("%Y-%m-%d")
     
-    print(f"Crawling KBO schedule from {start_date} to {end_date}...")
+    print(f"Crawling KBO schedule for {today}...")
     
     try:
-        # 모든 주의 날짜 리스트 생성
-        week_dates = get_week_dates(start_date, end_date)
-        
-        # 모든 주의 데이터 수집
-        all_games = []
-        for date in week_dates:
-            print(f"\nCrawling week of {date}...")
-            games = crawl_kbo_schedule(date)
-            all_games.extend(games)
+        # 당일 경기 데이터 수집
+        games = crawl_kbo_schedule(today)
         
         # 결과 표시
-        display_results(all_games)
+        display_results(games)
         
         # CSV로 저장
-        save_to_csv(all_games)
+        save_to_csv(games)
         
         # Supabase에 저장
-        save_to_supabase(all_games)
+        save_to_supabase(games)
         
     except Exception as e:
         print(f"An error occurred: {e}") 
