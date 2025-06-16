@@ -28,7 +28,7 @@ jobs:
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-      run: python kbo_schedule_crawler.py
+      run: python draft-league/kbo_schedule_crawler.py
         
     - name: Commit and push if changed
       run: |
