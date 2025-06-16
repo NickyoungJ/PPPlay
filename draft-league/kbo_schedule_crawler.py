@@ -8,13 +8,8 @@ from dotenv import load_dotenv
 from supabase import create_client
 import time
 
-# .env 파일에서 환경 변수 로드
-env_path = os.path.join(os.path.dirname(__file__), '.env.local')
-print("Loading .env file from:", env_path)
-load_dotenv(env_path)
-
-print("SUPABASE_URL:", os.getenv("SUPABASE_URL"))
-print("SUPABASE_KEY:", os.getenv("SUPABASE_KEY"))
+# 환경 변수 로드
+load_dotenv()
 
 # Supabase 클라이언트 초기화
 supabase = create_client(
