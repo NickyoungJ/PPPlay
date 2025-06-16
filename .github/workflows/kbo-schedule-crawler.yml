@@ -24,10 +24,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install requests beautifulsoup4 pandas python-dotenv supabase
         
+    - name: Create .env.local file
+      run: |
+        echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > draft-league/.env.local
+        echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> draft-league/.env.local
+        
     - name: Run crawler
-      env:
-        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
       run: python draft-league/kbo_schedule_crawler.py
         
     - name: Commit and push if changed
