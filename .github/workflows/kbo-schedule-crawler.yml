@@ -4,86 +4,231 @@ on:
   schedule:
     - cron: '0 0 * * *'  # 매일 자정에 실행
   workflow_dispatch:  # 수동 실행 가능
+    inputs:
+      date:
+        description: 'Specific date to crawl (YYYY-MM-DD)'
+        required: false
+        type: string
+      force_run:
+        description: 'Force run even if no games found'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  PYTHON_VERSION: '3.11'
 
 jobs:
   crawl:
     runs-on: ubuntu-latest
+    timeout-minutes: 20  # 전체 job 타임아웃
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
       with:
         token: ${{ secrets.PAT_TOKEN }}
+        fetch-depth: 1  # shallow clone for faster checkout
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'  # pip 캐시 활성화
+    
+    - name: Create requirements file
+      run: |
+        cat > requirements.txt << EOF
+        requests>=2.31.0
+        beautifulsoup4>=4.12.0
+        pandas>=2.0.0
+        python-dotenv>=1.0.0
+        supabase>=2.0.0
+        lxml>=4.9.0
+        EOF
     
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install requests beautifulsoup4 pandas python-dotenv supabase lxml
+        pip install -r requirements.txt
     
     - name: Setup random delay (anti-bot measure)
       run: |
-        # 1-300초 사이의 랜덤 지연 (최대 5분)
-        delay=$((RANDOM % 300 + 1))
-        echo "Waiting $delay seconds to avoid being detected as bot..."
+        # 30-180초 사이의 랜덤 지연
+        delay=$((RANDOM % 150 + 30))
+        echo "🕐 Waiting $delay seconds to avoid being detected as bot..."
         sleep $delay
+    
+    - name: Set target date
+      run: |
+        if [ -n "${{ github.event.inputs.date }}" ]; then
+          echo "TARGET_DATE=${{ github.event.inputs.date }}" >> $GITHUB_ENV
+          echo "📅 Using input date: ${{ github.event.inputs.date }}"
+        else
+          echo "TARGET_DATE=$(date '+%Y-%m-%d')" >> $GITHUB_ENV
+          echo "📅 Using today's date: $(date '+%Y-%m-%d')"
+        fi
     
     - name: Run KBO schedule crawler
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-        # GitHub Actions 환경임을 표시
         GITHUB_ACTIONS: true
+        TARGET_DATE: ${{ env.TARGET_DATE }}
       run: |
         cd draft-league
+        echo "🚀 Starting KBO crawler for date: $TARGET_DATE"
         python kbo_schedule_crawler.py
-      timeout-minutes: 15  # 15분 타임아웃 설정
+      timeout-minutes: 15
     
     - name: Upload debug files as artifacts
-      if: always()  # 실패해도 업로드
-      uses: actions/upload-artifact@v3
+      if: always()
+      uses: actions/upload-artifact@v4
       with:
-        name: debug-files
-        path: draft-league/kbo_schedule_debug_*.html
+        name: debug-files-${{ env.TARGET_DATE }}
+        path: |
+          draft-league/kbo_schedule_debug_*.html
+          draft-league/kbo_schedule_*.csv
         retention-days: 7
+        if-no-files-found: warn
     
-    - name: Check if CSV has content
+    - name: Validate crawler output
+      id: validate
       run: |
         cd draft-league
-        csv_file=$(ls kbo_schedule_*.csv 2>/dev/null | head -1)
-        if [ -f "$csv_file" ]; then
-          line_count=$(wc -l < "$csv_file")
-          echo "CSV file $csv_file has $line_count lines"
-          if [ $line_count -gt 1 ]; then
-            echo "CSV has content, proceeding with commit"
-            echo "HAS_CONTENT=true" >> $GITHUB_ENV
-          else
-            echo "CSV is empty, skipping commit"
-            echo "HAS_CONTENT=false" >> $GITHUB_ENV
-          fi
+        csv_files=(kbo_schedule_*.csv)
+        
+        if [ ${#csv_files[@]} -eq 0 ] || [ ! -f "${csv_files[0]}" ]; then
+          echo "❌ No CSV file found"
+          echo "has_content=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
+        csv_file="${csv_files[0]}"
+        line_count=$(wc -l < "$csv_file" 2>/dev/null || echo "0")
+        
+        echo "📊 CSV file: $csv_file"
+        echo "📊 Line count: $line_count"
+        
+        if [ "$line_count" -gt 1 ]; then
+          echo "✅ CSV has content ($((line_count-1)) games found)"
+          echo "has_content=true" >> $GITHUB_OUTPUT
+          
+          # Display first few lines for verification
+          echo "📋 Sample data:"
+          head -3 "$csv_file" || true
         else
-          echo "No CSV file found"
-          echo "HAS_CONTENT=false" >> $GITHUB_ENV
+          echo "⚠️ CSV is empty (only header or no content)"
+          if [ "${{ github.event.inputs.force_run }}" == "true" ]; then
+            echo "🔄 Force run enabled, will commit anyway"
+            echo "has_content=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_content=false" >> $GITHUB_OUTPUT
+          fi
         fi
     
-    - name: Commit and push if changes
-      if: env.HAS_CONTENT == 'true'
+    - name: Commit and push changes
+      if: steps.validate.outputs.has_content == 'true'
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add draft-league/kbo_schedule_*.csv
-        git commit -m "Update KBO schedule data - $(date '+%Y-%m-%d %H:%M:%S')" || exit 0
-        git push
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        
+        cd draft-league
+        git add kbo_schedule_*.csv
+        
+        if git diff --staged --quiet; then
+          echo "📝 No changes to commit"
+        else
+          timestamp=$(date '+%Y-%m-%d %H:%M:%S UTC')
+          git commit -m "🏟️ Update KBO schedule data - $timestamp"
+          git push
+          echo "✅ Successfully committed and pushed changes"
+        fi
     
-    - name: Notification on failure
-      if: failure()
+    - name: Summary report
+      if: always()
       run: |
-        echo "KBO crawler failed. Check the logs and debug files."
-        echo "This might be due to:"
-        echo "1. Website blocking GitHub Actions IP"
-        echo "2. Website structure changes"
-        echo "3. Network connectivity issues"
-        echo "4. Rate limiting"
+        echo "## 🏟️ KBO Crawler Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Date**: ${{ env.TARGET_DATE }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Has Content**: ${{ steps.validate.outputs.has_content }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Workflow**: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ job.status }}" != "success" ]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔍 Troubleshooting Tips" >> $GITHUB_STEP_SUMMARY
+          echo "1. Check the debug files in artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "2. Verify website accessibility" >> $GITHUB_STEP_SUMMARY
+          echo "3. Check Supabase connection" >> $GITHUB_STEP_SUMMARY
+          echo "4. Review recent changes to website structure" >> $GITHUB_STEP_SUMMARY
+        fi
+    
+    - name: Cleanup old artifacts
+      if: always()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            run_id: context.runId
+          });
+          
+          // Keep only last 10 artifacts
+          const oldArtifacts = artifacts.data.artifacts
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+            .slice(10);
+          
+          for (const artifact of oldArtifacts) {
+            try {
+              await github.rest.actions.deleteArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: artifact.id
+              });
+              console.log(`Deleted old artifact: ${artifact.name}`);
+            } catch (error) {
+              console.log(`Failed to delete artifact ${artifact.name}: ${error.message}`);
+            }
+          }
+
+  # 선택적: 실패 시 알림 job
+  notify-failure:
+    needs: crawl
+    runs-on: ubuntu-latest
+    if: failure() && github.event_name == 'schedule'  # scheduled run에서만 알림
+    
+    steps:
+    - name: Send failure notification
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const issue_title = `🚨 KBO Crawler Failed - ${new Date().toISOString().split('T')[0]}`;
+          const issue_body = `
+          ## KBO Schedule Crawler 실패 알림
+          
+          **실행 시각**: ${new Date().toISOString()}
+          **워크플로우**: [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          
+          ### 확인 사항
+          - [ ] 웹사이트 접근 가능 여부
+          - [ ] Supabase 연결 상태
+          - [ ] GitHub Secrets 설정
+          - [ ] 웹사이트 구조 변경 여부
+          
+          이 이슈는 자동으로 생성되었습니다.
+          `;
+          
+          // 동일한 제목의 열린 이슈가 있는지 확인
+          const existingIssues = await github.rest.issues.listForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            state: 'open',
+            labels: ['crawler-failure']
+          });
+          
+          const duplicateIssue = existingIssues.data.find(issue => 
+            issue.title.includes('KBO Crawler Failed')
+          );
+          
+          if (!dup
