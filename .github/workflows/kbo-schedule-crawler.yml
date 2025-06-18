@@ -10,32 +10,80 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         token: ${{ secrets.PAT_TOKEN }}
     
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: '3.11'
     
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install requests beautifulsoup4 pandas python-dotenv supabase
+        pip install requests beautifulsoup4 pandas python-dotenv supabase lxml
+    
+    - name: Setup random delay (anti-bot measure)
+      run: |
+        # 1-300초 사이의 랜덤 지연 (최대 5분)
+        delay=$((RANDOM % 300 + 1))
+        echo "Waiting $delay seconds to avoid being detected as bot..."
+        sleep $delay
     
     - name: Run KBO schedule crawler
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        # GitHub Actions 환경임을 표시
+        GITHUB_ACTIONS: true
       run: |
         cd draft-league
         python kbo_schedule_crawler.py
+      timeout-minutes: 15  # 15분 타임아웃 설정
+    
+    - name: Upload debug files as artifacts
+      if: always()  # 실패해도 업로드
+      uses: actions/upload-artifact@v3
+      with:
+        name: debug-files
+        path: draft-league/kbo_schedule_debug_*.html
+        retention-days: 7
+    
+    - name: Check if CSV has content
+      run: |
+        cd draft-league
+        csv_file=$(ls kbo_schedule_*.csv 2>/dev/null | head -1)
+        if [ -f "$csv_file" ]; then
+          line_count=$(wc -l < "$csv_file")
+          echo "CSV file $csv_file has $line_count lines"
+          if [ $line_count -gt 1 ]; then
+            echo "CSV has content, proceeding with commit"
+            echo "HAS_CONTENT=true" >> $GITHUB_ENV
+          else
+            echo "CSV is empty, skipping commit"
+            echo "HAS_CONTENT=false" >> $GITHUB_ENV
+          fi
+        else
+          echo "No CSV file found"
+          echo "HAS_CONTENT=false" >> $GITHUB_ENV
+        fi
     
     - name: Commit and push if changes
+      if: env.HAS_CONTENT == 'true'
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add draft-league/kbo_schedule_*.csv
-        git commit -m "Update KBO schedule data" || exit 0
+        git commit -m "Update KBO schedule data - $(date '+%Y-%m-%d %H:%M:%S')" || exit 0
         git push
+    
+    - name: Notification on failure
+      if: failure()
+      run: |
+        echo "KBO crawler failed. Check the logs and debug files."
+        echo "This might be due to:"
+        echo "1. Website blocking GitHub Actions IP"
+        echo "2. Website structure changes"
+        echo "3. Network connectivity issues"
+        echo "4. Rate limiting"
