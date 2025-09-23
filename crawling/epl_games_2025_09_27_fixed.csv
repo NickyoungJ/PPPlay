@@ -1,0 +1,11 @@
+home_team,away_team,start_time,home_score,away_score,result,is_closed,sport_id,sport_name,league_name,league_type,stadium
+브렌트퍼드,맨유,2025-09-27T20:30:00+09:00,,,,False,2,soccer,EPL,epl,
+리즈,본머스,2025-09-27T23:00:00+09:00,,,,False,2,soccer,EPL,epl,
+맨시티,번리,2025-09-27T23:00:00+09:00,,,,False,2,soccer,EPL,epl,
+팰리스,리버풀,2025-09-27T23:00:00+09:00,,,,False,2,soccer,EPL,epl,
+첼시,브라이턴,2025-09-27T23:00:00+09:00,,,,False,2,soccer,EPL,epl,
+노팅엄,선덜랜드,2025-09-27T01:30:00+09:00,,,,False,2,soccer,EPL,epl,
+토트넘,울버햄튼,2025-09-27T04:00:00+09:00,,,,False,2,soccer,EPL,epl,
+애스턴 빌라,풀럼,2025-09-27T22:00:00+09:00,,,,False,2,soccer,EPL,epl,
+뉴캐슬,아스널,2025-09-27T00:30:00+09:00,,,,False,2,soccer,EPL,epl,
+에버턴,웨스트햄,2025-09-27T04:00:00+09:00,,,,False,2,soccer,EPL,epl,

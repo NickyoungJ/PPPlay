@@ -1,0 +1,3 @@
+home_team,away_team,start_time,home_score,away_score,result,is_closed,sport_id,sport_name,stadium
+흥국생명,페퍼저축은행,2025-09-23T15:30:00+09:00,3,1,home_win,True,4,volleyball,
+현대건설,GS칼텍스,2025-09-23T19:00:00+09:00,1,0,home_win,False,4,volleyball,
