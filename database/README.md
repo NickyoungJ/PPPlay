@@ -11,7 +11,8 @@ database/
 │   ├── create_soccer_teams_table.sql
 │   ├── create_volleyball_games_table.sql
 │   └── create_volleyball_teams_table.sql
-├── seeds/              # 초기 데이터 삽입 SQL 파일들 (향후 사용)
+├── seeds/              # 초기 데이터 및 테스트 데이터 삽입 SQL 파일들
+│   └── insert_volleyball_games_sql.sql
 └── README.md           # 이 파일
 ```
 
@@ -37,18 +38,23 @@ database/
 3. 각 SQL 파일 내용을 복사하여 실행
 
 ### 2. 실행 순서
-1. **팀 테이블 먼저 생성**
+1. **팀 테이블 먼저 생성** (`migrations/` 폴더)
    ```sql
    -- KBO_teams (이미 생성됨)
    -- volleyball_teams
    -- soccer_teams
    ```
 
-2. **경기 테이블 생성**
+2. **경기 테이블 생성** (`migrations/` 폴더)
    ```sql
    -- games (이미 생성됨)
    -- volleyball_games  
    -- soccer_games
+   ```
+
+3. **초기 데이터 삽입** (`seeds/` 폴더)
+   ```sql
+   -- insert_volleyball_games_sql.sql (배구 경기 데이터)
    ```
 
 ## ⚠️ 주의사항
