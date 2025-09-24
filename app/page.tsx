@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { supabaseClient } from '../utils/supabase/client';
+import { useAuth } from './hooks/useAuth';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
+import Link from 'next/link';
 
 interface Game {
   id: string;
@@ -29,6 +31,7 @@ export default function Home() {
   const [games, setGames] = useState<Game[]>([]);
   const [leagues, setLeagues] = useState<League[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     fetchData();
@@ -108,12 +111,27 @@ export default function Home() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-colors shadow-lg hover:shadow-xl">
-                  로그인
-                </button>
-                <button className="border-2 border-primary/30 text-primary px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-primary/10 transition-colors backdrop-blur-md">
-                  더 알아보기
-                </button>
+                {isAuthenticated ? (
+                  <Link 
+                    href="/games"
+                    className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-colors shadow-lg hover:shadow-xl text-center"
+                  >
+                    경기 예측하기
+                  </Link>
+                ) : (
+                  <Link 
+                    href="/auth"
+                    className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-colors shadow-lg hover:shadow-xl text-center"
+                  >
+                    시작하기
+                  </Link>
+                )}
+                <Link 
+                  href="/games"
+                  className="border-2 border-primary/30 text-primary px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-primary/10 transition-colors backdrop-blur-md text-center"
+                >
+                  둘러보기
+                </Link>
               </div>
 
               {/* 통계 */}
