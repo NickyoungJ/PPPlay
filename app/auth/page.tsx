@@ -2,17 +2,25 @@
 
 import { useState, useEffect } from 'react'
 import { supabaseClient } from '@/utils/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { FcGoogle } from 'react-icons/fc'
-import { SiNaver } from 'react-icons/si'
+import { SiKakao } from 'react-icons/si'
 import Link from 'next/link'
 
 export default function AuthPage() {
   const [loading, setLoading] = useState(false)
   const [isSignUp, setIsSignUp] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
+    // URL에서 오류 메시지 확인
+    const errorParam = searchParams.get('error')
+    if (errorParam) {
+      setError(decodeURIComponent(errorParam))
+    }
+
     // 이미 로그인된 사용자는 메인 페이지로 리다이렉트
     const checkUser = async () => {
       const { data: { user } } = await supabaseClient.auth.getUser()
@@ -21,39 +29,66 @@ export default function AuthPage() {
       }
     }
     checkUser()
-  }, [router])
+  }, [router, searchParams])
 
   const signInWithGoogle = async () => {
     try {
       setLoading(true)
-      const { error } = await supabaseClient.auth.signInWithOAuth({
+      setError(null)
+      
+      console.log('🔐 Starting Google OAuth...')
+      console.log('🔐 Redirect URL:', `${window.location.origin}/auth/callback`)
+      
+      const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       })
+      
+      console.log('🔐 OAuth signInWithOAuth result:', { data, error })
+      
+      console.log('🔐 OAuth Response:', { data, error })
+      
       if (error) throw error
     } catch (error) {
-      console.error('Google 로그인 오류:', error)
-      alert('Google 로그인에 실패했습니다. 다시 시도해주세요.')
+      console.error('❌ Google 로그인 오류:', error)
+      setError(`Google 로그인 실패: ${error.message}`)
     } finally {
       setLoading(false)
     }
   }
 
-  const signInWithNaver = async () => {
+  const signInWithKakao = async () => {
     try {
       setLoading(true)
-      const { error } = await supabaseClient.auth.signInWithOAuth({
-        provider: 'naver',
+      setError(null)
+      
+      console.log('🔐 Starting Kakao OAuth...')
+      console.log('🔐 Redirect URL:', `${window.location.origin}/auth/callback`)
+      console.log('🔐 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+      
+      const { data, error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'kakao',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            scope: 'profile_nickname account_email'  // 닉네임과 이메일 요청
+          }
         }
       })
+      
+      console.log('🔐 Kakao OAuth Response:', { data, error })
+      console.log('🔐 OAuth URL:', data?.url)
+      
       if (error) throw error
     } catch (error) {
-      console.error('네이버 로그인 오류:', error)
-      alert('네이버 로그인에 실패했습니다. 다시 시도해주세요.')
+      console.error('❌ Kakao 로그인 오류:', error)
+      setError(`Kakao 로그인 실패: ${error.message}`)
     } finally {
       setLoading(false)
     }
@@ -101,6 +136,29 @@ export default function AuthPage() {
               </button>
             </div>
 
+            {/* 오류 메시지 */}
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+                <div className="flex items-center">
+                  <svg className="h-5 w-5 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  <p className="text-red-300 text-sm">
+                    {error === 'no_code' && '인증 코드가 없습니다. 다시 시도해주세요.'}
+                    {error === 'server_error' && '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'}
+                    {error.includes('authentication_failed') && '인증에 실패했습니다. 다시 시도해주세요.'}
+                    {!['no_code', 'server_error'].includes(error) && !error.includes('authentication_failed') && error}
+                  </p>
+                  <button
+                    onClick={() => setError(null)}
+                    className="ml-auto text-red-400 hover:text-red-300"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* 소셜 로그인 버튼들 */}
             <div className="space-y-4">
               {/* Google 로그인 */}
@@ -115,15 +173,15 @@ export default function AuthPage() {
                 </span>
               </button>
 
-              {/* 네이버 로그인 */}
+              {/* 카카오 로그인 */}
               <button
-                onClick={signInWithNaver}
+                onClick={signInWithKakao}
                 disabled={loading}
-                className="w-full flex items-center justify-center px-4 py-3 border border-slate-600 rounded-lg shadow-sm bg-[#03C75A] hover:bg-[#02b351] focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center px-4 py-3 border border-slate-600 rounded-lg shadow-sm bg-[#FEE500] hover:bg-[#FCDD00] focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <SiNaver className="h-5 w-5 mr-3 text-white" />
-                <span className="text-white font-medium">
-                  네이버로 {isSignUp ? '회원가입' : '로그인'}
+                <SiKakao className="h-5 w-5 mr-3 text-black" />
+                <span className="text-black font-medium">
+                  카카오로 {isSignUp ? '회원가입' : '로그인'}
                 </span>
               </button>
             </div>
