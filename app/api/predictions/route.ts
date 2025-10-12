@@ -15,7 +15,14 @@ export async function POST(request: NextRequest) {
     }
 
     // 예측 데이터 변환
-    const predictionData = predictions.map((prediction: any) => ({
+    interface PredictionInput {
+      gameId: string;
+      selectedTeam: string;
+      homeTeam: string;
+      awayTeam: string;
+    }
+    
+    const predictionData = predictions.map((prediction: PredictionInput) => ({
       user_id: userId || 'temp-user', // 임시 사용자 ID (추후 실제 인증 연동)
       game_id: prediction.gameId,
       predicted_winner: prediction.selectedTeam === 'home' ? 1 : 2,

@@ -175,7 +175,7 @@ const TestCrawling: NextPage = () => {
         <h3 className="font-semibold mb-2">사용법:</h3>
         <ul className="text-sm text-gray-600 space-y-1">
           <li>1. 원하는 날짜를 선택하세요 (예: 2025-08-31)</li>
-          <li>2. "크롤링 시작" 버튼을 클릭하세요</li>
+          <li>2. &quot;크롤링 시작&quot; 버튼을 클릭하세요</li>
           <li>3. 네이버 스포츠에서 해당 날짜의 KBO 경기 정보를 가져옵니다</li>
           <li>4. 경기 결과가 있는 경우 점수와 승부 결과도 표시됩니다</li>
         </ul>

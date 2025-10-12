@@ -25,7 +25,7 @@ export default function LogoUploadPage() {
       const fileName = `${teamName.toLowerCase()}-logo.png`;
       
       // Storage에 업로드
-      const { data, error } = await supabaseClient.storage
+      const { error } = await supabaseClient.storage
         .from('KBO_teamlogo')
         .upload(fileName, file, {
           cacheControl: '3600',

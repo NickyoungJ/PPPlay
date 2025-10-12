@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { supabaseClient } from '@/utils/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { FcGoogle } from 'react-icons/fc'
 import { SiKakao } from 'react-icons/si'
 import Link from 'next/link'
 
-export default function AuthPage() {
+function AuthContent() {
   const [loading, setLoading] = useState(false)
   const [isSignUp, setIsSignUp] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -222,5 +222,15 @@ export default function AuthPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="text-white">로딩 중...</div>
+    </div>}>
+      <AuthContent />
+    </Suspense>
   )
 }

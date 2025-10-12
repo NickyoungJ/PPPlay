@@ -7,29 +7,9 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import Link from 'next/link';
 
-interface Game {
-  id: string;
-  home_team: string;
-  away_team: string;
-  start_time: string;
-  result: string | null;
-  is_closed: boolean;
-  sports: {
-    name: string;
-  };
-}
-
-interface League {
-  id: string;
-  name: string;
-  type: string;
-  start_date: string;
-  end_date: string;
-}
+// Interfaces removed as they're not used in this component
 
 export default function Home() {
-  const [games, setGames] = useState<Game[]>([]);
-  const [leagues, setLeagues] = useState<League[]>([]);
   const [loading, setLoading] = useState(true);
   const { isAuthenticated } = useAuth();
 
