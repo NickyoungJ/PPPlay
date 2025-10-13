@@ -9,7 +9,6 @@ import Link from 'next/link'
 
 function AuthContent() {
   const [loading, setLoading] = useState(false)
-  const [isSignUp, setIsSignUp] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -105,35 +104,19 @@ function AuthContent() {
             </h1>
           </Link>
           <p className="mt-2 text-gray-300">
-            {isSignUp ? '새로운 계정을 만들어보세요' : '계정에 로그인하세요'}
+            소셜 계정으로 간편하게 시작하세요
           </p>
         </div>
 
         {/* 인증 카드 */}
         <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-8 shadow-2xl">
           <div className="space-y-6">
-            {/* 탭 전환 */}
-            <div className="flex bg-slate-700/50 rounded-lg p-1">
-              <button
-                onClick={() => setIsSignUp(false)}
-                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
-                  !isSignUp
-                    ? 'bg-pink-600 text-white shadow-sm'
-                    : 'text-gray-300 hover:text-white'
-                }`}
-              >
-                로그인
-              </button>
-              <button
-                onClick={() => setIsSignUp(true)}
-                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
-                  isSignUp
-                    ? 'bg-pink-600 text-white shadow-sm'
-                    : 'text-gray-300 hover:text-white'
-                }`}
-              >
-                회원가입
-              </button>
+            {/* 인증 안내 */}
+            <div className="text-center">
+              <h2 className="text-xl font-semibold text-white mb-2">로그인 / 회원가입</h2>
+              <p className="text-gray-400 text-sm">
+                처음 이용하시면 자동으로 회원가입됩니다
+              </p>
             </div>
 
             {/* 오류 메시지 */}
@@ -169,7 +152,7 @@ function AuthContent() {
               >
                 <FcGoogle className="h-5 w-5 mr-3" />
                 <span className="text-gray-900 font-medium">
-                  Google로 {isSignUp ? '회원가입' : '로그인'}
+                  Google로 계속하기
                 </span>
               </button>
 
@@ -181,7 +164,7 @@ function AuthContent() {
               >
                 <SiKakao className="h-5 w-5 mr-3 text-black" />
                 <span className="text-black font-medium">
-                  카카오로 {isSignUp ? '회원가입' : '로그인'}
+                  카카오로 계속하기
                 </span>
               </button>
             </div>
