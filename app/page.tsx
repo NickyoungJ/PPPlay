@@ -19,33 +19,8 @@ export default function Home() {
 
   const fetchData = async () => {
     try {
-      // 경기 데이터 가져오기
-      const { data: gamesData, error: gamesError } = await supabaseClient
-        .from('games')
-        .select(`
-          *,
-          sports(name)
-        `)
-        .order('start_time', { ascending: true });
-
-      if (gamesError) {
-        console.error('경기 데이터 로딩 오류:', gamesError);
-      } else {
-        setGames(gamesData || []);
-      }
-
-      // 리그 데이터 가져오기
-      const { data: leaguesData, error: leaguesError } = await supabaseClient
-        .from('leagues')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
-      if (leaguesError) {
-        console.error('리그 데이터 로딩 오류:', leaguesError);
-      } else {
-        setLeagues(leaguesData || []);
-      }
+      // 홈페이지에서는 데이터를 실제로 사용하지 않으므로 로딩만 처리
+      console.log('홈페이지 로딩 완료');
     } catch (error) {
       console.error('데이터 로딩 중 오류:', error);
     } finally {

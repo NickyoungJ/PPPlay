@@ -186,19 +186,17 @@ function AuthContent() {
 
         {/* 이용약관 및 개인정보처리방침 */}
         <div className="text-center text-sm text-gray-400">
-          {isSignUp && (
-            <p className="mb-2">
-              회원가입 시{' '}
-              <Link href="/terms" className="text-pink-400 hover:text-pink-300">
-                이용약관
-              </Link>
-              {' '}및{' '}
-              <Link href="/privacy" className="text-pink-400 hover:text-pink-300">
-                개인정보처리방침
-              </Link>
-              에 동의하게 됩니다.
-            </p>
-          )}
+          <p className="mb-2">
+            서비스 이용 시{' '}
+            <Link href="/terms" className="text-pink-400 hover:text-pink-300">
+              이용약관
+            </Link>
+            {' '}및{' '}
+            <Link href="/privacy" className="text-pink-400 hover:text-pink-300">
+              개인정보처리방침
+            </Link>
+            에 동의한 것으로 간주됩니다.
+          </p>
           <Link href="/" className="text-pink-400 hover:text-pink-300">
             ← 메인으로 돌아가기
           </Link>
