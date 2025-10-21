@@ -33,6 +33,9 @@ export default function Header() {
                 <Link href="/" className="text-foreground/80 hover:text-primary font-medium transition-colors">
                   홈
                 </Link>
+                <Link href="/markets" className="text-foreground/80 hover:text-primary font-medium transition-colors">
+                  마켓
+                </Link>
                 <Link href="/games" className="text-foreground/80 hover:text-primary font-medium transition-colors">
                   경기예측
                 </Link>
@@ -145,6 +148,13 @@ export default function Header() {
                     onClick={() => setIsMenuOpen(false)}
                   >
                     홈
+                  </Link>
+                  <Link 
+                    href="/markets" 
+                    className="text-foreground/80 hover:text-primary font-medium transition-colors px-4 py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    마켓
                   </Link>
                   <Link 
                     href="/games" 
