@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code')
   const error_param = searchParams.get('error')
   const error_description = searchParams.get('error_description')
-  const next = searchParams.get('next') ?? '/games'
+  const next = searchParams.get('next') ?? '/markets'
 
   console.log('🔐 OAuth Callback - Full URL:', request.url)
   console.log('🔐 OAuth Callback - Code:', code ? `Present (${code.substring(0, 10)}...)` : 'Missing')
