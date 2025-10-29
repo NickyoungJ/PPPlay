@@ -28,33 +28,14 @@ export async function POST(request: NextRequest) {
     const supabase = createClient();
     const { user } = await getAdminStatus();
 
-    // 마켓 결과 확정
-    const { data: market, error: updateError } = await supabase
-      .from('markets')
-      .update({
-        result,
-        is_closed: true,
-        status: 'closed',
-        result_confirmed_at: new Date().toISOString(),
-        result_confirmed_by: user?.id,
-        result_description: description || null,
-      })
-      .eq('id', market_id)
-      .select()
-      .single();
-
-    if (updateError) {
-      console.error('마켓 결과 확정 오류:', updateError);
-      return NextResponse.json(
-        { error: '마켓 결과 확정에 실패했습니다.' },
-        { status: 500 }
-      );
-    }
-
-    // 예측 정산 (settle_market_predictions 함수 호출)
+    // settle_market 함수 호출 (원자적 정산)
     const { data: settlementResult, error: settlementError } = await supabase.rpc(
-      'settle_market_predictions',
-      { p_market_id: market_id }
+      'settle_market',
+      { 
+        p_market_id: market_id,
+        p_result: result,
+        p_admin_id: user?.id 
+      }
     );
 
     if (settlementError) {
@@ -68,6 +49,13 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // 업데이트된 마켓 정보 조회
+    const { data: market } = await supabase
+      .from('markets')
+      .select('*')
+      .eq('id', market_id)
+      .single();
 
     return NextResponse.json({
       success: true,
