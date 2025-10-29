@@ -26,9 +26,9 @@ export function useAuth() {
         setUser(session?.user ?? null)
         setLoading(false)
 
-        // 로그인 성공 시 게임 페이지로 이동
+        // 로그인 성공 시 마켓 페이지로 이동
         if (event === 'SIGNED_IN' && session?.user) {
-          router.push('/games')
+          router.push('/markets')
         }
 
         // 로그아웃 시 메인 페이지로 이동
