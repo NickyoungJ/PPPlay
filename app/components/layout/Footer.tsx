@@ -12,11 +12,11 @@ export default function Footer() {
               <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">
                 PPPlay
               </h3>
-              <p className="text-sm text-foreground/70">스포츠 승부예측 플랫폼</p>
+              <p className="text-sm text-foreground/70">한국형 폴리마켓 예측 플랫폼</p>
             </div>
             <p className="text-foreground/70 mb-6 max-w-md">
-              친구들과 함께하는 스포츠 승부예측 플랫폼. 
-              정확한 예측으로 랭킹을 올리고 다양한 보상을 받아보세요.
+              정치, 경제, 연예, 스포츠 등 다양한 이슈를 예측하고
+              정확한 예측으로 포인트를 획득하세요.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-foreground/70 hover:text-primary transition-colors">
@@ -36,8 +36,8 @@ export default function Footer() {
                 <h4 className="text-lg font-semibold mb-4 text-foreground">서비스</h4>
                 <ul className="space-y-2">
                   <li>
-                    <Link href="/games" className="text-foreground/70 hover:text-primary transition-colors">
-                      경기예측
+                    <Link href="/markets" className="text-foreground/70 hover:text-primary transition-colors">
+                      예측 마켓
                     </Link>
                   </li>
                   <li>

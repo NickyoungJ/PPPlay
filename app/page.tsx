@@ -281,58 +281,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 스포츠 예측 섹션 */}
-        <section className="px-4 md:px-8 py-16 bg-gradient-to-b from-background to-background/50">
-          <div className="max-w-7xl mx-auto">
-            <div className="bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 border border-primary/30 rounded-3xl p-8 md:p-10 backdrop-blur-xl">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                <div>
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 border border-primary/40 rounded-full text-primary font-semibold text-sm mb-4">
-                    <span>⚽</span>
-                    <span>스포츠 예측</span>
-                  </div>
-                  <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground leading-tight">
-                    실시간 스포츠 경기
-                    <br />
-                    승부를 예측하세요
-                  </h2>
-                  <p className="text-foreground/70 mb-8 leading-relaxed">
-                    야구, 축구, 농구, 배구 등 다양한 스포츠 경기의 승부를 예측하고
-                    <br className="hidden md:block" />
-                    리그에 참여하여 친구들과 경쟁하세요
-                  </p>
-                  <Link 
-                    href="/games"
-                    className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-secondary hover:shadow-xl text-white px-8 py-4 rounded-2xl font-bold transition-all hover:scale-105 group"
-                  >
-                    <span className="text-white">경기 예측하러 가기</span>
-                    <FaArrowRight className="text-white text-sm group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </div>
-                <div className="relative">
-                  <div className="bg-background/70 backdrop-blur-xl border border-primary/30 rounded-2xl p-6">
-                    <div className="space-y-3">
-                      {[
-                        { sport: '⚾ 야구', count: '오늘 5경기', color: 'text-blue-400' },
-                        { sport: '⚽ 축구', count: '오늘 8경기', color: 'text-green-400' },
-                        { sport: '🏀 농구', count: '오늘 3경기', color: 'text-orange-400' },
-                        { sport: '🏐 배구', count: '오늘 2경기', color: 'text-purple-400' },
-                      ].map((item, index) => (
-                        <div 
-                          key={index}
-                          className="flex items-center justify-between p-4 bg-background/40 rounded-xl border border-primary/20 hover:border-primary/40 transition-all"
-                        >
-                          <span className="font-semibold text-foreground">{item.sport}</span>
-                          <span className={`font-bold ${item.color}`}>{item.count}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* CTA 섹션 */}
         {!isAuthenticated && (
