@@ -49,15 +49,19 @@ function AuthContent() {
         }
       })
       
-      console.log('🔐 OAuth signInWithOAuth result:', { data, error })
-      
-      console.log('🔐 OAuth Response:', { data, error })
+      console.log('🔐 Google OAuth Response:', { data, error })
+      console.log('🔐 OAuth URL:', data?.url)
       
       if (error) throw error
+      
+      // 구글 로그인 페이지로 리다이렉트
+      if (data?.url) {
+        console.log('🔐 Redirecting to Google login page...')
+        window.location.href = data.url
+      }
     } catch (error) {
       console.error('❌ Google 로그인 오류:', error)
       setError(`Google 로그인 실패: ${error.message}`)
-    } finally {
       setLoading(false)
     }
   }
@@ -85,10 +89,15 @@ function AuthContent() {
       console.log('🔐 OAuth URL:', data?.url)
       
       if (error) throw error
+      
+      // 카카오 로그인 페이지로 리다이렉트
+      if (data?.url) {
+        console.log('🔐 Redirecting to Kakao login page...')
+        window.location.href = data.url
+      }
     } catch (error) {
       console.error('❌ Kakao 로그인 오류:', error)
       setError(`Kakao 로그인 실패: ${error.message}`)
-    } finally {
       setLoading(false)
     }
   }
