@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
+import { supabaseClient } from '@/utils/supabase/client'
 
 interface UserPoints {
   rp_points: number
@@ -52,7 +52,7 @@ interface Transaction {
 
 export default function ProfilePage() {
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = supabaseClient
   const [user, setUser] = useState<any>(null)
   const [userPoints, setUserPoints] = useState<UserPoints | null>(null)
   const [predictions, setPredictions] = useState<Prediction[]>([])
