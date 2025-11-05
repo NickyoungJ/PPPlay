@@ -153,15 +153,6 @@ export default function Header() {
                   >
                     마켓
                   </Link>
-                  {isAuthenticated && (
-                    <Link 
-                      href="/profile" 
-                      className="text-foreground/80 hover:text-primary font-medium transition-colors px-4 py-2"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      마이페이지
-                    </Link>
-                  )}
                   <Link 
                     href="/leaderboard" 
                     className="text-foreground/80 hover:text-primary font-medium transition-colors px-4 py-2"

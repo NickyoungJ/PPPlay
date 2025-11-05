@@ -135,13 +135,6 @@ export default function Home() {
                   <FaArrowRight className="text-white group-hover:translate-x-1 transition-transform text-sm" />
                 </Link>
               )}
-              <Link 
-                href="/markets"
-                className="group border-2 border-primary/40 bg-primary/5 hover:bg-primary/10 text-foreground px-8 py-4 rounded-2xl font-semibold hover:border-primary/60 transition-all backdrop-blur-md flex items-center gap-2"
-              >
-                <span>마켓 탐색</span>
-                <FaArrowRight className="text-primary group-hover:translate-x-1 transition-transform text-sm" />
-              </Link>
             </div>
 
             {/* 실시간 통계 */}
