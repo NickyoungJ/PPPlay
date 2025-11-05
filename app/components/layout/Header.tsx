@@ -36,11 +36,6 @@ export default function Header() {
                 <Link href="/markets" className="text-foreground/80 hover:text-primary font-medium transition-colors">
                   마켓
                 </Link>
-                {isAuthenticated && (
-                  <Link href="/profile" className="text-foreground/80 hover:text-primary font-medium transition-colors">
-                    마이페이지
-                  </Link>
-                )}
                 <Link href="/leaderboard" className="text-foreground/80 hover:text-primary font-medium transition-colors">
                   상점
                 </Link>
