@@ -16,11 +16,10 @@ interface MarketDetail {
   option_yes: string;
   option_no: string;
   total_participants: number;
-  total_points_pool: number;
   yes_count: number;
   no_count: number;
-  yes_points: number;
-  no_points: number;
+  yes_percentage: number;
+  no_percentage: number;
   closes_at: string;
   is_closed: boolean;
   result?: string;
@@ -36,8 +35,8 @@ export default function MarketDetailPage() {
   const [market, setMarket] = useState<MarketDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState<'yes' | 'no' | null>(null);
-  const [pointsToSpend, setPointsToSpend] = useState(10);
   const [submitting, setSubmitting] = useState(false);
+  const [hasVoted, setHasVoted] = useState(false);
 
   // 마켓 상세 정보 가져오기
   const fetchMarketDetail = async () => {
@@ -67,8 +66,8 @@ export default function MarketDetailPage() {
     }
   }, [marketId]);
 
-  // 예측 제출
-  const handleSubmitPrediction = async () => {
+  // 투표 제출 (간소화)
+  const handleSubmitVote = async () => {
     if (!isAuthenticated) {
       alert('로그인이 필요합니다.');
       router.push('/auth');
@@ -89,21 +88,20 @@ export default function MarketDetailPage() {
         body: JSON.stringify({
           market_id: marketId,
           predicted_option: selectedOption,
-          points_spent: pointsToSpend,
         }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        alert('예측에 참여했습니다!');
+        alert('✅ 투표에 참여했습니다! +5P 적립 완료 🎉');
+        setHasVoted(true);
         fetchMarketDetail(); // 마켓 정보 새로고침
-        setSelectedOption(null);
       } else {
-        alert(data.error || '예측 참여에 실패했습니다.');
+        alert(data.error || '투표 참여에 실패했습니다.');
       }
     } catch (error) {
-      console.error('예측 제출 오류:', error);
+      console.error('투표 제출 오류:', error);
       alert('서버 오류가 발생했습니다.');
     } finally {
       setSubmitting(false);
@@ -141,11 +139,9 @@ export default function MarketDetailPage() {
     return `${minutes}분 남음`;
   };
 
-  // Yes/No 비율 계산
-  const yesPercentage = market && market.total_participants > 0
-    ? (market.yes_count / market.total_participants) * 100
-    : 50;
-  const noPercentage = 100 - yesPercentage;
+  // Yes/No 비율 (DB에서 계산됨)
+  const yesPercentage = market?.yes_percentage || 0;
+  const noPercentage = market?.no_percentage || 0;
 
   if (loading) {
     return (
@@ -231,11 +227,11 @@ export default function MarketDetailPage() {
             <div className="flex items-center gap-8 text-foreground/70">
               <div className="flex items-center gap-2">
                 <FaUsers className="text-primary" />
-                <span className="font-semibold">{market.total_participants.toLocaleString()}명 참여</span>
+                <span className="font-semibold">{market.total_participants.toLocaleString()}명 투표</span>
               </div>
               <div className="flex items-center gap-2">
                 <FaCoins className="text-accent" />
-                <span className="font-semibold">{market.total_points_pool.toLocaleString()}P</span>
+                <span className="font-semibold">참여 +5P / 적중 +20P</span>
               </div>
             </div>
           </div>
@@ -267,7 +263,7 @@ export default function MarketDetailPage() {
                   {market.option_yes}
                 </div>
                 <div className="text-sm text-foreground/60">
-                  {market.yes_count}명 • {market.yes_points.toLocaleString()}P
+                  {market.yes_count.toLocaleString()}명 투표
                 </div>
               </div>
 
@@ -303,7 +299,7 @@ export default function MarketDetailPage() {
                   {market.option_no}
                 </div>
                 <div className="text-sm text-foreground/60">
-                  {market.no_count}명 • {market.no_points.toLocaleString()}P
+                  {market.no_count.toLocaleString()}명 투표
                 </div>
               </div>
 
@@ -315,47 +311,55 @@ export default function MarketDetailPage() {
             </button>
           </div>
 
-          {/* 포인트 선택 & 제출 */}
-          {!market.is_closed && isAuthenticated && (
+          {/* 투표 제출 버튼 */}
+          {!market.is_closed && isAuthenticated && !hasVoted && (
             <div className="bg-background/40 backdrop-blur-xl border border-primary/20 rounded-3xl p-8">
-              <h3 className="text-xl font-bold mb-6 text-foreground/90">얼마를 베팅하시겠습니까?</h3>
-              
-              <div className="grid grid-cols-4 gap-3 mb-6">
-                {[10, 50, 100, 500].map((points) => (
-                  <button
-                    key={points}
-                    onClick={() => setPointsToSpend(points)}
-                    className={`
-                      px-6 py-4 rounded-2xl font-bold text-lg transition-all
-                      ${pointsToSpend === points 
-                        ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg scale-105' 
-                        : 'bg-primary/10 border border-primary/30 text-foreground/80 hover:text-primary hover:border-primary/50'
-                      }
-                    `}
-                  >
-                    {points}P
-                  </button>
-                ))}
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold mb-3 text-foreground/90">
+                  {selectedOption ? '투표를 확정하시겠습니까?' : 'YES 또는 NO를 선택하세요'}
+                </h3>
+                <div className="flex items-center justify-center gap-3 text-accent font-semibold">
+                  <span className="text-lg">💰 참여 보상: +5P (즉시)</span>
+                  <span className="text-foreground/40">|</span>
+                  <span className="text-lg">🎯 적중 보상: +20P (결과 확정 후)</span>
+                </div>
               </div>
 
               <button
-                onClick={handleSubmitPrediction}
+                onClick={handleSubmitVote}
                 disabled={!selectedOption || submitting}
-                className="w-full px-8 py-5 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white rounded-2xl transition-all font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg shadow-primary/20"
+                className="w-full px-8 py-6 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white rounded-2xl transition-all font-bold text-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-2xl shadow-primary/30"
               >
                 {submitting ? (
                   <>
-                    <FaSpinner className="animate-spin text-xl" />
+                    <FaSpinner className="animate-spin text-2xl" />
                     <span>처리 중...</span>
                   </>
                 ) : (
                   <span>
-                    {selectedOption === 'yes' && `Yes에 ${pointsToSpend}P 베팅`}
-                    {selectedOption === 'no' && `No에 ${pointsToSpend}P 베팅`}
-                    {!selectedOption && 'Yes 또는 No를 선택하세요'}
+                    {selectedOption === 'yes' && '✅ YES로 투표하기'}
+                    {selectedOption === 'no' && '✅ NO로 투표하기'}
+                    {!selectedOption && '위에서 YES 또는 NO를 선택하세요'}
                   </span>
                 )}
               </button>
+
+              <p className="text-center text-foreground/50 text-sm mt-4">
+                ⚠️ 1인 1표 제한 | 하루 최대 10회 투표 가능
+              </p>
+            </div>
+          )}
+
+          {/* 투표 완료 */}
+          {!market.is_closed && hasVoted && (
+            <div className="bg-primary/10 backdrop-blur-xl border border-primary/30 rounded-3xl p-8 text-center">
+              <div className="text-6xl mb-4">✅</div>
+              <h3 className="text-2xl font-bold mb-2 text-foreground/90">
+                투표 완료!
+              </h3>
+              <p className="text-foreground/60 mb-4">
+                +5P가 적립되었습니다. 결과 확정 후 적중 시 +20P가 추가 지급됩니다.
+              </p>
             </div>
           )}
 

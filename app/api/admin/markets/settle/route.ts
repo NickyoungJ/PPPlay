@@ -28,9 +28,9 @@ export async function POST(request: NextRequest) {
     const supabase = createClient();
     const { user } = await getAdminStatus();
 
-    // settle_market 함수 호출 (원자적 정산)
+    // settle_market_simple 함수 호출 (간소화된 정산)
     const { data: settlementResult, error: settlementError } = await supabase.rpc(
-      'settle_market',
+      'settle_market_simple',
       { 
         p_market_id: market_id,
         p_result: result,

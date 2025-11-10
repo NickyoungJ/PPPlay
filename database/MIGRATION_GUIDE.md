@@ -1,344 +1,237 @@
-# 🚀 Phase 1 마이그레이션 가이드
+# 🔄 마이그레이션 가이드: 주식 시스템 → 투표 시스템
 
-## 📋 체크리스트
+## 📋 개요
 
-Phase 1 데이터베이스 마이그레이션을 위한 단계별 가이드입니다.
+이 마이그레이션은 복잡한 주식/베팅 시스템을 **단순한 투표 시스템**으로 전환합니다.
+
+### 주요 변경 사항
+
+| 구분 | 이전 (주식 시스템) | 이후 (투표 시스템) |
+|------|-------------------|-------------------|
+| **투표 참여** | 주식 수 선택 + 포인트 차감 | YES/NO 선택 + 즉시 +5P |
+| **가격** | 동적 가격 (0-100P) | 없음 (비율만 표시) |
+| **보상** | 주식 × 100P + 풀 분배 | 고정 +20P (적중 시) |
+| **포인트** | RP/PP/WP 3가지 | RP 중심 (단일 포인트) |
+| **일일 제한** | 없음 | 하루 10회 제한 |
 
 ---
 
-## ✅ 사전 준비
+## 🚀 Step 1: Supabase에서 마이그레이션 실행
 
-- [ ] Supabase 대시보드 접속 확인
-- [ ] SQL Editor 접근 권한 확인
-- [ ] 기존 데이터 백업 완료 (중요!)
-- [ ] 개발 환경에서 먼저 테스트 권장
+### 방법 1: Supabase Dashboard (추천)
 
----
+1. **Supabase 대시보드 접속**
+   ```
+   https://supabase.com/dashboard
+   ```
 
-## 📝 마이그레이션 단계
+2. **프로젝트 선택**
+   - 프로젝트: `mtuzltnvgokupkjprsdt`
 
-### **1단계: 카테고리 테이블 생성**
+3. **SQL Editor 열기**
+   - 좌측 메뉴: `SQL Editor` 클릭
+   - 또는 직접 이동: `https://supabase.com/dashboard/project/mtuzltnvgokupkjprsdt/sql/new`
+
+4. **마이그레이션 SQL 실행**
+   - `database/migrations/09_simplify_to_poll_market.sql` 파일 내용 복사
+   - SQL Editor에 붙여넣기
+   - **Run** 버튼 클릭 ▶️
+
+5. **결과 확인**
+   ```
+   ✅ 마이그레이션 완료!
+   복잡한 주식/베팅 시스템 → 단순 투표 시스템 전환 성공
+   ```
+
+### 방법 2: Supabase CLI (로컬)
+
 ```bash
-파일: 01_create_market_categories_table.sql
+# Supabase CLI 설치 (없는 경우)
+brew install supabase/tap/supabase
+
+# 프로젝트 링크
+supabase link --project-ref mtuzltnvgokupkjprsdt
+
+# 마이그레이션 실행
+supabase db push
+
+# 또는 직접 SQL 실행
+supabase db execute --file database/migrations/09_simplify_to_poll_market.sql
 ```
-
-**실행 내용:**
-- `market_categories` 테이블 생성
-- 초기 카테고리 데이터 삽입 (전체/스포츠/정치/경제/연예/사회/IT)
-
-**검증:**
-```sql
-SELECT * FROM market_categories ORDER BY display_order;
--- 7개의 카테고리가 표시되어야 함
-```
-
-**상태:** ⬜ 대기중 → 🟦 진행중 → ✅ 완료
 
 ---
 
-### **2단계: 마켓 테이블 생성**
-```bash
-파일: 02_create_markets_table.sql
-```
+## 🔍 Step 2: 마이그레이션 검증
 
-**실행 내용:**
-- `markets` 테이블 생성 (통합 마켓)
-- 인덱스 생성
-- 자동 마감 함수 생성
+### 2-1. 테이블 구조 확인
 
-**검증:**
+Supabase Dashboard → Table Editor에서 확인:
+
+#### `markets` 테이블
 ```sql
--- 테이블 구조 확인
-\d markets
-
--- 인덱스 확인
-SELECT indexname, indexdef 
-FROM pg_indexes 
-WHERE tablename = 'markets';
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'markets'
+ORDER BY ordinal_position;
 ```
 
-**상태:** ⬜ 대기중 → 🟦 진행중 → ✅ 완료
+**확인 사항:**
+- ❌ `yes_price`, `no_price` 컬럼 제거됨
+- ❌ `yes_shares`, `no_shares` 컬럼 제거됨
+- ❌ `total_points_pool` 컬럼 제거됨
+- ✅ `yes_percentage`, `no_percentage` 컬럼 추가됨
 
----
-
-### **3단계: 사용자 포인트 테이블 생성**
-```bash
-파일: 03_create_user_points_table.sql
-```
-
-**실행 내용:**
-- `user_points` 테이블 생성
-- 자동 계산 트리거 생성 (승률, 레벨업, 티어, 추천코드)
-- 인덱스 생성
-
-**검증:**
+#### `predictions` 테이블
 ```sql
--- 테이블 확인
-\d user_points
-
--- 트리거 확인
-SELECT trigger_name, event_manipulation, action_statement 
-FROM information_schema.triggers 
-WHERE event_object_table = 'user_points';
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'predictions'
+ORDER BY ordinal_position;
 ```
 
-**상태:** ⬜ 대기중 → 🟦 진행중 → ✅ 완료
+**확인 사항:**
+- ❌ `point_type`, `points_spent` 컬럼 제거됨
+- ❌ `purchase_price`, `shares` 컬럼 제거됨
+- ✅ `participation_reward`, `accuracy_reward` 컬럼 추가됨
 
----
+### 2-2. 함수 확인
 
-### **4단계: 포인트 트랜잭션 테이블 생성**
-```bash
-파일: 04_create_point_transactions_table.sql
-```
-
-**실행 내용:**
-- `point_transactions` 테이블 생성
-- 자동 포인트 처리 트리거 생성
-- 일일 출석 함수 생성
-- 인덱스 생성
-
-**검증:**
 ```sql
--- 테이블 확인
-\d point_transactions
-
--- 함수 확인
-\df check_daily_login
-```
-
-**상태:** ⬜ 대기중 → 🟦 진행중 → ✅ 완료
-
----
-
-### **5단계: 예측 테이블 수정**
-```bash
-파일: 05_modify_predictions_table.sql
-```
-
-**⚠️ 주의: 기존 predictions 테이블을 삭제하고 재생성합니다!**
-
-**실행 내용:**
-- 기존 `predictions` 테이블 삭제 (DROP)
-- 새로운 구조로 재생성 (market_id 기반)
-- 예측 정산 함수 생성
-- 인덱스 생성
-
-**검증:**
-```sql
--- 테이블 구조 확인
-\d predictions
-
--- 정산 함수 확인
-\df settle_prediction
-\df settle_market_predictions
-```
-
-**상태:** ⬜ 대기중 → 🟦 진행중 → ✅ 완료
-
----
-
-### **6단계: 헬퍼 함수 생성**
-```bash
-파일: 06_create_helper_functions.sql
-```
-
-**실행 내용:**
-- 사용자 초기화 함수
-- 마켓 조회 함수
-- 사용자 예측 조회 함수
-- 리더보드 함수
-- 통계 조회 함수
-- 광고 보상 함수
-
-**검증:**
-```sql
--- 생성된 함수 목록 확인
-SELECT routine_name, routine_type
+-- 새로운 함수들이 생성되었는지 확인
+SELECT 
+    routine_name,
+    routine_type,
+    data_type
 FROM information_schema.routines
 WHERE routine_schema = 'public'
   AND routine_name IN (
-    'initialize_user_points',
-    'get_active_markets',
-    'get_user_predictions',
-    'get_leaderboard',
-    'get_market_statistics',
-    'get_user_statistics',
-    'reward_ad_view'
+      'update_vote_percentage',
+      'update_market_stats_for_poll',
+      'settle_market_simple',
+      'check_daily_vote_limit',
+      'increment_daily_vote_count'
   );
 ```
 
-**상태:** ⬜ 대기중 → 🟦 진행중 → ✅ 완료
+**예상 결과:**
+```
+routine_name                    | routine_type | data_type
+-------------------------------|--------------|----------
+update_vote_percentage         | FUNCTION     | trigger
+update_market_stats_for_poll   | FUNCTION     | void
+settle_market_simple           | FUNCTION     | jsonb
+check_daily_vote_limit         | FUNCTION     | boolean
+increment_daily_vote_count     | FUNCTION     | void
+```
+
+### 2-3. 기존 데이터 확인
+
+```sql
+-- 기존 마켓의 비율이 제대로 계산되었는지 확인
+SELECT 
+    id,
+    title,
+    yes_count,
+    no_count,
+    total_participants,
+    yes_percentage,
+    no_percentage,
+    (yes_percentage + no_percentage) AS total_percentage
+FROM markets
+WHERE total_participants > 0
+LIMIT 5;
+```
+
+**확인 사항:**
+- `yes_percentage + no_percentage ≈ 100` (소수점 오차 허용)
 
 ---
 
-## 🧪 테스트
+## 🛠️ Step 3: API 코드 수정
 
-### **기본 기능 테스트**
+마이그레이션 후 다음 API 파일들을 수정해야 합니다:
 
-```sql
--- 1. 카테고리 조회
-SELECT * FROM market_categories WHERE is_active = true;
+### 수정 대상 파일
 
--- 2. 테스트 사용자 생성
-SELECT initialize_user_points('00000000-0000-0000-0000-000000000001', NULL);
+1. ✅ `/app/api/predictions/create/route.ts`
+   - 주식 수, 포인트 타입 제거
+   - 일일 제한 체크 추가
+   - 참여 보상 로직 변경
 
--- 3. 사용자 포인트 확인
-SELECT * FROM user_points WHERE user_id = '00000000-0000-0000-0000-000000000001';
+2. ✅ `/app/api/admin/markets/settle/route.ts`
+   - `settle_market_simple` 함수 호출
+   - 고정 보상 로직
 
--- 4. 출석 체크 테스트
-SELECT check_daily_login('00000000-0000-0000-0000-000000000001');
+3. ✅ `/app/markets/[id]/page.tsx`
+   - UI: 주식 수 입력 제거
+   - UI: 가격 → 비율로 변경
+   - 단순 YES/NO 버튼
 
--- 5. 포인트 트랜잭션 확인
-SELECT * FROM point_transactions 
-WHERE user_id = '00000000-0000-0000-0000-000000000001'
-ORDER BY created_at DESC;
-
--- 6. 테스트 마켓 생성
-INSERT INTO markets (
-    market_type, title, description, category_slug,
-    option_yes, option_no, closes_at, status
-) VALUES (
-    'general',
-    '테스트 마켓: AI가 2025년 노벨상을 받을까?',
-    '2025년 노벨상 수상자 중 AI 연구자가 포함될 것인가?',
-    'tech',
-    'Yes',
-    'No',
-    '2025-12-31 23:59:59+09',
-    'approved'
-) RETURNING id;
-
--- 7. 마켓 조회 테스트
-SELECT * FROM get_active_markets('tech', 10, 0);
-
--- 8. 예측 생성 테스트
-INSERT INTO predictions (
-    user_id, market_id, predicted_option, points_spent
-) VALUES (
-    '00000000-0000-0000-0000-000000000001',
-    (SELECT id FROM markets WHERE title LIKE '%AI가 2025년%'),
-    'yes',
-    50
-) RETURNING *;
-
--- 9. 사용자 통계 확인
-SELECT get_user_statistics('00000000-0000-0000-0000-000000000001');
-
--- 10. 리더보드 테스트
-SELECT * FROM get_leaderboard('points', 10);
-```
+4. ✅ `/app/components/market/GeneralMarketCard.tsx`
+   - 가격 표시 → 비율 표시로 변경
 
 ---
 
-## 🔒 RLS (Row Level Security) 설정
+## ⚠️ 주의사항
 
-마이그레이션 완료 후 반드시 RLS 정책을 설정하세요.
+### 1. 기존 데이터 영향
 
-### **markets 테이블**
+- **기존 예측 데이터는 유지됩니다**
+- `participation_reward`, `accuracy_reward` 자동 설정됨
+- 정산되지 않은 마켓은 새로운 로직으로 정산됨
+
+### 2. 호환성
+
+- 기존 `point_transactions` 타입은 유지됨 (하위 호환성)
+- `user_points`의 RP/PP/WP 컬럼은 유지됨 (향후 제거 가능)
+
+### 3. 롤백 방법
+
+만약 문제가 발생하면:
+
 ```sql
-ALTER TABLE markets ENABLE ROW LEVEL SECURITY;
+-- 마이그레이션 이전 백업 복원
+-- (Supabase는 자동 백업 제공)
 
--- 활성 마켓은 누구나 조회 가능
-CREATE POLICY "Anyone can view active markets" ON markets
-    FOR SELECT 
-    USING (status IN ('approved', 'active') AND is_closed = false);
+-- 또는 수동 롤백:
+BEGIN;
 
--- 인증된 사용자는 일반 마켓 생성 가능
-CREATE POLICY "Authenticated users can create general markets" ON markets
-    FOR INSERT 
-    WITH CHECK (
-        auth.uid() = creator_id 
-        AND market_type = 'general'
-    );
+-- 제거된 컬럼 복원
+ALTER TABLE markets
+    ADD COLUMN yes_price INTEGER DEFAULT 50,
+    ADD COLUMN no_price INTEGER DEFAULT 50;
 
--- 본인이 만든 마켓만 수정 가능
-CREATE POLICY "Users can update own markets" ON markets
-    FOR UPDATE 
-    USING (auth.uid() = creator_id);
-```
+-- 추가된 컬럼 제거
+ALTER TABLE markets
+    DROP COLUMN yes_percentage,
+    DROP COLUMN no_percentage;
 
-### **predictions 테이블**
-```sql
-ALTER TABLE predictions ENABLE ROW LEVEL SECURITY;
-
--- 본인 예측만 조회
-CREATE POLICY "Users can view own predictions" ON predictions
-    FOR SELECT 
-    USING (auth.uid() = user_id);
-
--- 본인 예측만 생성
-CREATE POLICY "Users can create own predictions" ON predictions
-    FOR INSERT 
-    WITH CHECK (auth.uid() = user_id);
-```
-
-### **user_points 테이블**
-```sql
-ALTER TABLE user_points ENABLE ROW LEVEL SECURITY;
-
--- 본인 포인트만 조회
-CREATE POLICY "Users can view own points" ON user_points
-    FOR SELECT 
-    USING (auth.uid() = user_id);
-```
-
-### **point_transactions 테이블**
-```sql
-ALTER TABLE point_transactions ENABLE ROW LEVEL SECURITY;
-
--- 본인 트랜잭션만 조회
-CREATE POLICY "Users can view own transactions" ON point_transactions
-    FOR SELECT 
-    USING (auth.uid() = user_id);
+COMMIT;
 ```
 
 ---
 
-## 🐛 문제 해결
+## ✅ 완료 체크리스트
 
-### **오류 1: "relation does not exist"**
-**원인:** 참조하는 테이블이 아직 생성되지 않음  
-**해결:** 마이그레이션 순서를 확인하고 이전 단계부터 다시 실행
-
-### **오류 2: "function does not exist"**
-**원인:** 트리거에서 사용하는 함수가 아직 생성되지 않음  
-**해결:** 함수를 먼저 생성한 후 트리거 생성
-
-### **오류 3: "duplicate key value violates unique constraint"**
-**원인:** 이미 존재하는 데이터 중복  
-**해결:** 기존 데이터 확인 후 `DROP TABLE IF EXISTS` 사용
-
-### **오류 4: "insufficient privilege"**
-**원인:** 권한 부족  
-**해결:** Supabase 대시보드에서 SQL Editor로 실행하거나 관리자 권한 확인
+- [ ] Supabase에서 마이그레이션 SQL 실행
+- [ ] 테이블 구조 확인 (컬럼 제거/추가)
+- [ ] 함수 생성 확인 (5개 함수)
+- [ ] 기존 데이터 비율 계산 확인
+- [ ] API 코드 수정 (4개 파일)
+- [ ] 로컬 테스트 (투표 참여 → 보상 확인)
+- [ ] Vercel 배포 및 프로덕션 테스트
 
 ---
 
-## 📊 마이그레이션 체크리스트
+## 🎯 다음 단계
 
-```
-Phase 1: 데이터베이스 확장
-├─ [ ] 1. market_categories 테이블 생성
-├─ [ ] 2. markets 테이블 생성
-├─ [ ] 3. user_points 테이블 생성
-├─ [ ] 4. point_transactions 테이블 생성
-├─ [ ] 5. predictions 테이블 수정
-├─ [ ] 6. 헬퍼 함수 생성
-├─ [ ] 7. RLS 정책 설정
-├─ [ ] 8. 기본 기능 테스트
-└─ [ ] 9. 프로덕션 배포 (백업 후)
-```
+마이그레이션 완료 후:
+
+1. **API 수정** (자동 진행 예정)
+2. **UI/UX 수정** (가격 → 비율 표시)
+3. **테스트** (로컬 → 프로덕션)
+4. **배포** (Vercel)
 
 ---
 
-## 🎉 완료 후 확인사항
-
-- [ ] 모든 테이블이 정상 생성됨
-- [ ] 인덱스가 올바르게 생성됨
-- [ ] 트리거/함수가 정상 작동함
-- [ ] RLS 정책이 적용됨
-- [ ] 테스트 데이터로 동작 확인 완료
-- [ ] 기존 스포츠 테이블 정상 작동 확인
-
-**완료되면 Phase 2 (스포츠 마켓 자동화)로 진행하세요!** 🚀
-
+**문의사항이 있으면 언제든지 말씀해주세요!** 🚀

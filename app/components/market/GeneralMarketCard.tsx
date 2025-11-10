@@ -169,11 +169,12 @@ export default function GeneralMarketCard({
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
             <FaUsers className="text-primary" />
-            <span className="font-medium">{market.total_participants.toLocaleString()}명</span>
+            <span className="font-medium">{market.total_participants.toLocaleString()}명 투표</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <FaCoins className="text-accent" />
-            <span className="font-medium">{market.total_points_pool.toLocaleString()}P</span>
+            <span className="text-accent font-semibold">
+              참여 +5P / 적중 +20P
+            </span>
           </div>
         </div>
       </div>
