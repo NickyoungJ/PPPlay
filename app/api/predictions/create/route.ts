@@ -13,9 +13,23 @@ export async function POST(request: NextRequest) {
       error: authError,
     } = await supabase.auth.getUser();
 
+    // 디버깅 로그
+    console.log('🔐 Auth Check:', {
+      hasUser: !!user,
+      userId: user?.id,
+      authError: authError?.message,
+    });
+
     if (authError || !user) {
+      console.error('❌ 인증 실패:', authError);
       return NextResponse.json(
-        { error: '로그인이 필요합니다.' },
+        { 
+          error: '로그인이 필요합니다.',
+          debug: {
+            authError: authError?.message,
+            hasUser: !!user,
+          }
+        },
         { status: 401 }
       );
     }
