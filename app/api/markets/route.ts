@@ -13,17 +13,26 @@ export async function GET(request: NextRequest) {
 
     const supabase = createClient();
 
-    // get_active_markets 함수 호출
-    const { data, error } = await supabase.rpc('get_active_markets', {
-      p_category_slug: category === 'all' ? null : category,
-      p_limit: limit,
-      p_offset: offset,
-    });
+    // 직접 쿼리 (RPC 함수 없이)
+    let query = supabase
+      .from('markets')
+      .select('*')
+      .in('status', ['active', 'approved'])
+      .eq('is_closed', false)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    // 카테고리 필터
+    if (category && category !== 'all') {
+      query = query.eq('category_slug', category);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('마켓 조회 오류:', error);
       return NextResponse.json(
-        { error: '마켓 조회에 실패했습니다.' },
+        { error: '마켓 조회에 실패했습니다.', details: error.message },
         { status: 500 }
       );
     }
