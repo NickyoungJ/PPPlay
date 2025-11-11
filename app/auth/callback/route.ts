@@ -2,7 +2,10 @@ import { createClient } from '@/utils/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url)
+  const requestUrl = new URL(request.url)
+  const { searchParams } = requestUrl
+  // 항상 현재 요청의 origin 사용 (환경 변수 무시)
+  const origin = requestUrl.origin
   const code = searchParams.get('code')
   const error_param = searchParams.get('error')
   const error_description = searchParams.get('error_description')
@@ -23,7 +26,7 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     try {
-      const supabase = createClient()
+      const supabase = await createClient()
       console.log('🔐 Attempting to exchange code for session...')
       
       const { data, error } = await supabase.auth.exchangeCodeForSession(code)
