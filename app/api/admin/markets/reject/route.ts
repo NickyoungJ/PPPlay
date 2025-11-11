@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // 마켓 정보 조회 (환불을 위해)
     const { data: market, error: fetchError } = await supabase

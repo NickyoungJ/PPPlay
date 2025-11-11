@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0');
     const status = searchParams.get('status') || 'active';
 
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // 직접 쿼리 (RPC 함수 없이)
     let query = supabase

@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = createClient();
+    const supabase = await createClient();
     const { user } = await getAdminStatus();
 
     // settle_market_simple 함수 호출 (간소화된 정산)

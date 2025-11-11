@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase/server';
 // PRD: 참여 즉시 +5P, 적중 시 +20P
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     
     // 사용자 인증 확인
     const {

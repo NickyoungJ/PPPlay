@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/server';
 // 관리자 권한 확인 API
 export async function GET() {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     
     const {
       data: { user },

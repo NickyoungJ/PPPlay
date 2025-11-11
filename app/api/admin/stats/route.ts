@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     // 관리자 권한 확인
     await requireAdmin();
 
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // 1. 전체 마켓 통계
     const { data: marketStats, error: marketError } = await supabase

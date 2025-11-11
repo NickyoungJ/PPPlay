@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/server';
 // 마켓 생성 API
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     
     // 사용자 인증 확인
     const {
