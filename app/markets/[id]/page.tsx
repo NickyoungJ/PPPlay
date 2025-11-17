@@ -68,11 +68,14 @@ export default function MarketDetailPage() {
 
   // 투표 제출 (간소화)
   const handleSubmitVote = async () => {
+    // 🔥 임시: 로그인 체크 비활성화 (테스트용)
+    /*
     if (!isAuthenticated) {
       alert('로그인이 필요합니다.');
       router.push('/auth');
       return;
     }
+    */
 
     if (!selectedOption) {
       alert('Yes 또는 No를 선택해주세요.');

@@ -7,7 +7,12 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
     
-    // 사용자 인증 확인
+    // 🔥 임시: 인증 비활성화 (테스트용)
+    // 테스트용 더미 사용자 ID
+    const TEST_USER_ID = '00000000-0000-0000-0000-000000000001';
+    
+    // 사용자 인증 확인 (일단 주석 처리)
+    /*
     const {
       data: { user },
       error: authError,
@@ -33,6 +38,10 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+    */
+    
+    // 임시 더미 사용자 객체
+    const user = { id: TEST_USER_ID };
 
     const body = await request.json();
     const { market_id, predicted_option } = body;
