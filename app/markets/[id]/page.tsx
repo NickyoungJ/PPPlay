@@ -315,7 +315,8 @@ export default function MarketDetailPage() {
           </div>
 
           {/* 투표 제출 버튼 */}
-          {!market.is_closed && isAuthenticated && !hasVoted && (
+          {/* 🔥 임시: isAuthenticated 체크 비활성화 */}
+          {!market.is_closed && !hasVoted && (
             <div className="bg-background/40 backdrop-blur-xl border border-primary/20 rounded-3xl p-8">
               <div className="text-center mb-6">
                 <h3 className="text-2xl font-bold mb-3 text-foreground/90">

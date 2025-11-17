@@ -5,8 +5,22 @@
 -- 작성일: 2025-11-17
 
 -- 테스트 사용자 추가
-INSERT INTO user_points (user_id, rp, pp, wp)
-VALUES ('00000000-0000-0000-0000-000000000001', 1000, 0, 0)
+INSERT INTO user_points (
+    user_id, 
+    total_points,         -- 총 포인트
+    available_points,     -- 사용 가능 포인트
+    daily_votes,          -- 오늘 투표 수
+    last_vote_date,       -- 마지막 투표 날짜
+    total_votes           -- 총 투표 수
+)
+VALUES (
+    '00000000-0000-0000-0000-000000000001', 
+    1000,                 -- 초기 포인트 1000P
+    1000,                 -- 사용 가능 포인트 1000P
+    0,                    -- 투표 수 0
+    NULL,                 -- 아직 투표 안 함
+    0                     -- 총 투표 0
+)
 ON CONFLICT (user_id) DO NOTHING;
 
 -- 검증 쿼리

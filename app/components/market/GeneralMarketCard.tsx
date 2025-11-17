@@ -112,56 +112,58 @@ export default function GeneralMarketCard({
       {/* Yes/No 투표 섹션 */}
       <div className="grid grid-cols-2 gap-3 mb-5">
         {/* Yes 옵션 */}
-        <button
-          className={`
-            relative overflow-hidden rounded-2xl border-2 p-4
-            ${showActions ? 'cursor-pointer hover:border-primary hover:shadow-lg hover:shadow-primary/20 hover:scale-105' : ''}
-            transition-all duration-200 border-primary/30 bg-gradient-to-br from-primary/10 to-transparent
-          `}
-          onClick={() => showActions && onPredict && onPredict(market.id, 'yes')}
-        >
-          <div className="relative z-10">
-            <div className="text-xs text-foreground/60 mb-1 font-semibold">YES</div>
-            <div className="text-2xl font-bold text-primary mb-2">
-              {market.yes_percentage.toFixed(1)}%
+        <Link href={`/markets/${market.id}`}>
+          <button
+            className={`
+              w-full relative overflow-hidden rounded-2xl border-2 p-4
+              ${showActions ? 'cursor-pointer hover:border-primary hover:shadow-lg hover:shadow-primary/20 hover:scale-105' : ''}
+              transition-all duration-200 border-primary/30 bg-gradient-to-br from-primary/10 to-transparent
+            `}
+          >
+            <div className="relative z-10">
+              <div className="text-xs text-foreground/60 mb-1 font-semibold">YES</div>
+              <div className="text-2xl font-bold text-primary mb-2">
+                {market.yes_percentage.toFixed(1)}%
+              </div>
+              <div className="text-xs text-foreground/80 font-medium line-clamp-2">
+                {market.option_yes}
+              </div>
             </div>
-            <div className="text-xs text-foreground/80 font-medium line-clamp-2">
-              {market.option_yes}
-            </div>
-          </div>
-          
-          {/* 배경 진행 바 */}
-          <div
-            className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/5 transition-all duration-500"
-            style={{ width: `${market.yes_percentage}%` }}
-          />
-        </button>
+            
+            {/* 배경 진행 바 */}
+            <div
+              className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/5 transition-all duration-500"
+              style={{ width: `${market.yes_percentage}%` }}
+            />
+          </button>
+        </Link>
 
         {/* No 옵션 */}
-        <button
-          className={`
-            relative overflow-hidden rounded-2xl border-2 p-4
-            ${showActions ? 'cursor-pointer hover:border-secondary hover:shadow-lg hover:shadow-secondary/20 hover:scale-105' : ''}
-            transition-all duration-200 border-secondary/30 bg-gradient-to-br from-secondary/10 to-transparent
-          `}
-          onClick={() => showActions && onPredict && onPredict(market.id, 'no')}
-        >
-          <div className="relative z-10">
-            <div className="text-xs text-foreground/60 mb-1 font-semibold">NO</div>
-            <div className="text-2xl font-bold text-secondary mb-2">
-              {market.no_percentage.toFixed(1)}%
+        <Link href={`/markets/${market.id}`}>
+          <button
+            className={`
+              w-full relative overflow-hidden rounded-2xl border-2 p-4
+              ${showActions ? 'cursor-pointer hover:border-secondary hover:shadow-lg hover:shadow-secondary/20 hover:scale-105' : ''}
+              transition-all duration-200 border-secondary/30 bg-gradient-to-br from-secondary/10 to-transparent
+            `}
+          >
+            <div className="relative z-10">
+              <div className="text-xs text-foreground/60 mb-1 font-semibold">NO</div>
+              <div className="text-2xl font-bold text-secondary mb-2">
+                {market.no_percentage.toFixed(1)}%
+              </div>
+              <div className="text-xs text-foreground/80 font-medium line-clamp-2">
+                {market.option_no}
+              </div>
             </div>
-            <div className="text-xs text-foreground/80 font-medium line-clamp-2">
-              {market.option_no}
-            </div>
-          </div>
-          
-          {/* 배경 진행 바 */}
-          <div
-            className="absolute inset-0 bg-gradient-to-r from-secondary/20 to-secondary/5 transition-all duration-500"
-            style={{ width: `${market.no_percentage}%` }}
-          />
-        </button>
+            
+            {/* 배경 진행 바 */}
+            <div
+              className="absolute inset-0 bg-gradient-to-r from-secondary/20 to-secondary/5 transition-all duration-500"
+              style={{ width: `${market.no_percentage}%` }}
+            />
+          </button>
+        </Link>
       </div>
 
       {/* 통계 */}
