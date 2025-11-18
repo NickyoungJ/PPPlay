@@ -97,7 +97,8 @@ export default function SettleMarketsPage() {
         alert('마켓 결과가 확정되고 정산이 완료되었습니다!');
         fetchClosedMarkets();
       } else {
-        alert(data.error || '결과 확정에 실패했습니다.');
+        console.error('❌ 정산 실패:', data);
+        alert(`결과 확정에 실패했습니다.\n\n에러: ${data.error}\n\n자세한 내용: ${data.details || '없음'}`);
       }
     } catch (error) {
       console.error('결과 확정 오류:', error);
