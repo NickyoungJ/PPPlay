@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '../../components/layout/Header';
 import Footer from '../../components/layout/Footer';
-import { useAuth } from '../../hooks/useAuth';
+// import { useAuth } from '../../hooks/useAuth'; // 🔥 임시: 리다이렉트 방지를 위해 주석 처리
 import { FaArrowLeft, FaSpinner, FaCheckCircle, FaClock } from 'react-icons/fa';
 import { supabaseClient } from '@/utils/supabase/client';
 
@@ -27,7 +27,7 @@ interface Market {
 
 export default function SettleMarketsPage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  // const { isAuthenticated } = useAuth(); // 🔥 임시: useAuth 주석 처리
 
   const [markets, setMarkets] = useState<Market[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,13 +36,6 @@ export default function SettleMarketsPage() {
 
   useEffect(() => {
     // 🔥 임시: 관리자 인증 비활성화 (테스트용)
-    /*
-    if (!isAuthenticated) {
-      router.push('/auth');
-    } else {
-      fetchClosedMarkets();
-    }
-    */
     fetchClosedMarkets();
   }, []);
 
