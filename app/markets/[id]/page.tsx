@@ -239,6 +239,47 @@ export default function MarketDetailPage() {
             </div>
           </div>
 
+          {/* 결과 확정 표시 */}
+          {market.result && (
+            <div className="bg-gradient-to-br from-accent/20 to-accent/5 border-2 border-accent/40 rounded-3xl p-8 mb-8">
+              <div className="text-center mb-6">
+                <div className="text-6xl mb-4">🏆</div>
+                <h2 className="text-3xl font-bold text-foreground/90 mb-2">
+                  확정 결과
+                </h2>
+                <p className="text-accent font-bold text-2xl">
+                  {market.result === 'yes' ? 'YES' : 'NO'} 승리!
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className={`text-center p-4 rounded-xl ${market.result === 'yes' ? 'bg-primary/20 border-2 border-primary' : 'opacity-50'}`}>
+                  <div className="text-sm text-foreground/70 mb-1">YES</div>
+                  <div className="text-2xl font-bold text-primary">{yesPercentage.toFixed(1)}%</div>
+                  {market.result === 'yes' && (
+                    <div className="text-xs text-primary font-bold mt-2">✅ 당첨!</div>
+                  )}
+                </div>
+                <div className={`text-center p-4 rounded-xl ${market.result === 'no' ? 'bg-secondary/20 border-2 border-secondary' : 'opacity-50'}`}>
+                  <div className="text-sm text-foreground/70 mb-1">NO</div>
+                  <div className="text-2xl font-bold text-secondary">{noPercentage.toFixed(1)}%</div>
+                  {market.result === 'no' && (
+                    <div className="text-xs text-secondary font-bold mt-2">✅ 당첨!</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-accent/20 text-center">
+                <p className="text-foreground/70">
+                  당첨자: <span className="font-bold text-accent">{market.result === 'yes' ? market.yes_count : market.no_count}명</span>
+                </p>
+                <p className="text-foreground/70">
+                  총 지급 포인트: <span className="font-bold text-accent">{(market.result === 'yes' ? market.yes_count : market.no_count) * 20}P</span>
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Yes/No 투표 섹션 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {/* Yes */}
