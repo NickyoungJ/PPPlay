@@ -1,228 +1,118 @@
-import Link from 'next/link';
+'use client';
+
+import Header from '../components/layout/Header';
+import Footer from '../components/layout/Footer';
 
 export default function LeaderboardPage() {
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <Link href="/" className="text-pink-400 hover:text-pink-300 mb-4 inline-block">
-              ← 메인으로 돌아가기
-            </Link>
-            <h1 className="text-3xl font-bold text-white mb-2">리더보드</h1>
-            <p className="text-gray-400">최고의 예측 전문가들을 만나보세요</p>
+    <div className="min-h-screen flex flex-col bg-background">
+      <Header />
+      
+      <main className="flex-1 px-4 md:px-8 py-12">
+        <div className="max-w-5xl mx-auto">
+          {/* 페이지 헤더 */}
+          <div className="mb-12">
+            <h1 className="text-4xl md:text-5xl font-bold mb-3">
+              <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                상점 🏪
+              </span>
+            </h1>
+            <p className="text-foreground/70 text-lg">
+              포인트로 다양한 리워드를 구매하세요
+            </p>
           </div>
 
-          <div className="space-y-6">
-            {/* 전체 랭킹 */}
-            <section className="bg-slate-800/50 rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-                🏆 전체 랭킹
-                <span className="ml-2 text-sm text-gray-400">(이번 주)</span>
+          <div className="space-y-8">
+            {/* 상점 안내 */}
+            <section className="bg-background/40 backdrop-blur-xl border border-primary/20 rounded-3xl p-8">
+              <h2 className="text-2xl font-bold text-foreground/90 mb-6 flex items-center gap-3">
+                💎 포인트 상점 (준비 중)
+                <span className="ml-2 text-sm text-foreground/50">(곧 오픈 예정)</span>
               </h2>
               
-              <div className="space-y-4">
-                {/* 1위 */}
-                <div className="flex items-center p-4 bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 rounded-lg border border-yellow-500/30">
-                  <div className="flex items-center space-x-4 flex-1">
-                    <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center font-bold text-black">
-                      1
-                    </div>
-                    <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center">
-                      👑
-                    </div>
-                    <div>
-                      <p className="font-semibold text-white">예측왕</p>
-                      <p className="text-sm text-gray-400">정확도: 87.5%</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-yellow-400">2,450 pts</p>
-                    <p className="text-sm text-gray-400">25승 3패</p>
-                  </div>
-                </div>
-
-                {/* 2위 */}
-                <div className="flex items-center p-4 bg-slate-700/50 rounded-lg">
-                  <div className="flex items-center space-x-4 flex-1">
-                    <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center font-bold text-black">
-                      2
-                    </div>
-                    <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center">
-                      🥈
-                    </div>
-                    <div>
-                      <p className="font-semibold text-white">스포츠매니아</p>
-                      <p className="text-sm text-gray-400">정확도: 82.1%</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-gray-300">2,180 pts</p>
-                    <p className="text-sm text-gray-400">23승 5패</p>
-                  </div>
-                </div>
-
-                {/* 3위 */}
-                <div className="flex items-center p-4 bg-slate-700/50 rounded-lg">
-                  <div className="flex items-center space-x-4 flex-1">
-                    <div className="w-8 h-8 bg-amber-600 rounded-full flex items-center justify-center font-bold text-white">
-                      3
-                    </div>
-                    <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center">
-                      🥉
-                    </div>
-                    <div>
-                      <p className="font-semibold text-white">야구사랑</p>
-                      <p className="text-sm text-gray-400">정확도: 79.3%</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-amber-400">1,950 pts</p>
-                    <p className="text-sm text-gray-400">19승 5패</p>
-                  </div>
-                </div>
-
-                {/* 4-10위 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 상점 아이템 예시 */}
                 {[
-                  { rank: 4, name: '축구광', accuracy: '76.8%', points: '1,720', record: '18승 7패' },
-                  { rank: 5, name: '배구마스터', accuracy: '74.2%', points: '1,580', record: '17승 8패' },
-                  { rank: 6, name: '승부사', accuracy: '71.9%', points: '1,420', record: '16승 9패' },
-                  { rank: 7, name: '예측고수', accuracy: '69.5%', points: '1,280', record: '15승 10패' },
-                  { rank: 8, name: '스포츠팬', accuracy: '67.1%', points: '1,150', record: '14승 11패' },
-                  { rank: 9, name: '분석가', accuracy: '64.8%', points: '1,020', record: '13승 12패' },
-                  { rank: 10, name: '도전자', accuracy: '62.4%', points: '890', record: '12승 13패' },
-                ].map((user) => (
-                  <div key={user.rank} className="flex items-center p-4 bg-slate-700/30 rounded-lg">
-                    <div className="flex items-center space-x-4 flex-1">
-                      <div className="w-8 h-8 bg-slate-600 rounded-full flex items-center justify-center font-bold text-white">
-                        {user.rank}
+                  { icon: '🎁', name: '스타벅스 기프티콘', points: 5000, description: '아메리카노 Tall 사이즈' },
+                  { icon: '🎟️', name: '영화 예매권', points: 12000, description: 'CGV/롯데시네마 2D 영화' },
+                  { icon: '🍔', name: '맥도날드 세트', points: 8000, description: '빅맥 세트 기프티콘' },
+                  { icon: '🎮', name: '게임 포인트', points: 10000, description: '10,000원 상당 게임 캐시' },
+                  { icon: '📱', name: '모바일 쿠폰', points: 3000, description: '편의점 3,000원 상품권' },
+                  { icon: '🍕', name: '피자 할인권', points: 15000, description: '피자 50% 할인 쿠폰' },
+                ].map((item, index) => (
+                  <div key={index} className="bg-background/60 border border-primary/10 rounded-2xl p-6 hover:bg-background/80 hover:border-primary/30 transition-all cursor-not-allowed opacity-60">
+                    <div className="flex items-start gap-4">
+                      <div className="text-5xl">{item.icon}</div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-foreground/90 text-lg mb-1">{item.name}</h3>
+                        <p className="text-sm text-foreground/60 mb-3">{item.description}</p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-accent font-bold text-lg">{item.points.toLocaleString()}P</span>
+                          <button 
+                            disabled
+                            className="bg-primary/30 text-foreground/50 px-4 py-2 rounded-xl font-medium cursor-not-allowed"
+                          >
+                            준비 중
+                          </button>
+                        </div>
                       </div>
-                      <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center">
-                        👤
-                      </div>
-                      <div>
-                        <p className="font-semibold text-white">{user.name}</p>
-                        <p className="text-sm text-gray-400">정확도: {user.accuracy}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-gray-300">{user.points} pts</p>
-                      <p className="text-sm text-gray-400">{user.record}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </section>
 
-            {/* 스포츠별 랭킹 */}
-            <section className="bg-slate-800/50 rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-white mb-6">🏅 스포츠별 TOP 3</h2>
+            {/* 포인트 획득 방법 안내 */}
+            <section className="bg-background/40 backdrop-blur-xl border border-secondary/20 rounded-3xl p-8">
+              <h2 className="text-2xl font-bold text-foreground/90 mb-6 flex items-center gap-3">
+                💡 포인트 획득 방법
+              </h2>
               
-              <div className="grid md:grid-cols-3 gap-6">
-                {/* 야구 */}
-                <div className="bg-slate-700/50 rounded-lg p-4">
-                  <h3 className="font-semibold text-white mb-4 flex items-center">
-                    ⚾ 야구 (KBO)
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-yellow-400">🥇</span>
-                        <span className="text-white">야구사랑</span>
-                      </div>
-                      <span className="text-sm text-gray-400">92%</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-gray-400">🥈</span>
-                        <span className="text-white">KBO마니아</span>
-                      </div>
-                      <span className="text-sm text-gray-400">89%</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-amber-600">🥉</span>
-                        <span className="text-white">홈런왕</span>
-                      </div>
-                      <span className="text-sm text-gray-400">85%</span>
-                    </div>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-primary/10 border border-primary/30 rounded-2xl p-6 text-center">
+                  <div className="text-4xl mb-3">🗳️</div>
+                  <h3 className="font-bold text-foreground/90 text-lg mb-2">투표 참여</h3>
+                  <p className="text-foreground/60 text-sm mb-3">
+                    마켓에 투표하면 자동으로
+                  </p>
+                  <div className="text-primary font-bold text-2xl">+5P</div>
                 </div>
 
-                {/* 축구 */}
-                <div className="bg-slate-700/50 rounded-lg p-4">
-                  <h3 className="font-semibold text-white mb-4 flex items-center">
-                    ⚽ 축구 (EPL)
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-yellow-400">🥇</span>
-                        <span className="text-white">축구광</span>
-                      </div>
-                      <span className="text-sm text-gray-400">88%</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-gray-400">🥈</span>
-                        <span className="text-white">EPL전문가</span>
-                      </div>
-                      <span className="text-sm text-gray-400">84%</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-amber-600">🥉</span>
-                        <span className="text-white">프리미어팬</span>
-                      </div>
-                      <span className="text-sm text-gray-400">81%</span>
-                    </div>
-                  </div>
+                <div className="bg-accent/10 border border-accent/30 rounded-2xl p-6 text-center">
+                  <div className="text-4xl mb-3">✅</div>
+                  <h3 className="font-bold text-foreground/90 text-lg mb-2">예측 적중</h3>
+                  <p className="text-foreground/60 text-sm mb-3">
+                    정답을 맞추면 추가 보상
+                  </p>
+                  <div className="text-accent font-bold text-2xl">+20P</div>
                 </div>
 
-                {/* 배구 */}
-                <div className="bg-slate-700/50 rounded-lg p-4">
-                  <h3 className="font-semibold text-white mb-4 flex items-center">
-                    🏐 배구 (V-League)
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-yellow-400">🥇</span>
-                        <span className="text-white">배구마스터</span>
-                      </div>
-                      <span className="text-sm text-gray-400">90%</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-gray-400">🥈</span>
-                        <span className="text-white">스파이크킹</span>
-                      </div>
-                      <span className="text-sm text-gray-400">86%</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-amber-600">🥉</span>
-                        <span className="text-white">V리그팬</span>
-                      </div>
-                      <span className="text-sm text-gray-400">83%</span>
-                    </div>
-                  </div>
+                <div className="bg-secondary/10 border border-secondary/30 rounded-2xl p-6 text-center">
+                  <div className="text-4xl mb-3">🎁</div>
+                  <h3 className="font-bold text-foreground/90 text-lg mb-2">일일 보너스</h3>
+                  <p className="text-foreground/60 text-sm mb-3">
+                    매일 첫 투표 시 추가 지급
+                  </p>
+                  <div className="text-secondary font-bold text-2xl">+10P</div>
                 </div>
               </div>
             </section>
 
             {/* 안내 메시지 */}
-            <div className="text-center p-6 bg-slate-800/30 rounded-lg">
-              <p className="text-gray-400 mb-2">
-                🚀 <strong>곧 출시!</strong> 실제 랭킹 시스템이 곧 추가됩니다.
+            <div className="text-center p-8 bg-accent/10 border border-accent/20 rounded-3xl">
+              <div className="text-5xl mb-4">🚧</div>
+              <p className="text-foreground/80 mb-2 text-lg font-semibold">
+                상점 기능 준비 중입니다
               </p>
-              <p className="text-sm text-gray-500">
-                위 데이터는 예시이며, 실제 서비스에서는 실시간 랭킹이 제공됩니다.
+              <p className="text-sm text-foreground/60">
+                곧 다양한 리워드를 만나보실 수 있습니다. 지금부터 포인트를 모아보세요! 💪
               </p>
             </div>
           </div>
         </div>
-      </div>
+      </main>
+
+      <Footer />
     </div>
   );
 }
