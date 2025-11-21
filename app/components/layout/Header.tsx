@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { FaBars, FaTimes, FaUser, FaCoins, FaSignOutAlt } from 'react-icons/fa';
 import { useAuth } from '@/app/hooks/useAuth';
@@ -8,10 +8,43 @@ import { useAuth } from '@/app/hooks/useAuth';
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [userCoins, setUserCoins] = useState(0);
   const { user, loading, signOut, isAuthenticated } = useAuth();
   
-  // 임시 코인 데이터 (추후 실제 데이터로 교체)
-  const userCoins = 1250;
+  // 실시간 포인트 가져오기
+  useEffect(() => {
+    const fetchUserPoints = async () => {
+      if (isAuthenticated) {
+        try {
+          const response = await fetch('/api/profile');
+          const data = await response.json();
+          
+          if (data.success) {
+            setUserCoins(data.profile.points.total);
+          }
+        } catch (error) {
+          console.error('포인트 조회 오류:', error);
+        }
+      }
+    };
+
+    fetchUserPoints();
+    
+    // 30초마다 포인트 갱신
+    const interval = setInterval(fetchUserPoints, 30000);
+    
+    // 포인트 업데이트 이벤트 리스너 (투표 후 즉시 갱신)
+    const handlePointsUpdate = () => {
+      fetchUserPoints();
+    };
+    
+    window.addEventListener('pointsUpdated', handlePointsUpdate);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('pointsUpdated', handlePointsUpdate);
+    };
+  }, [isAuthenticated]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);

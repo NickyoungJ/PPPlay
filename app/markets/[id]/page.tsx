@@ -100,6 +100,9 @@ export default function MarketDetailPage() {
         alert('✅ 투표에 참여했습니다! +5P 적립 완료 🎉');
         setHasVoted(true);
         fetchMarketDetail(); // 마켓 정보 새로고침
+        
+        // 헤더의 포인트를 즉시 갱신
+        window.dispatchEvent(new Event('pointsUpdated'));
       } else {
         alert(data.error || '투표 참여에 실패했습니다.');
       }
