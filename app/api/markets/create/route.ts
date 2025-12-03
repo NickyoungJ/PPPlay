@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 
+const MARKET_CREATION_COST = 1000;
+
 // 마켓 생성 API
 export async function POST(request: NextRequest) {
   try {
@@ -39,10 +41,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 사용자 포인트 확인
+    // 사용자 포인트 사전 확인
     const { data: userPoints, error: pointsError } = await supabase
       .from('user_points')
-      .select('available_points')
+      .select('total_points')
       .eq('user_id', user.id)
       .single();
 
@@ -53,20 +55,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 포인트 부족 체크
-    const MARKET_CREATION_COST = 1000;
-    if (userPoints.available_points < MARKET_CREATION_COST) {
+    // 포인트 부족 사전 체크
+    if (userPoints.total_points < MARKET_CREATION_COST) {
       return NextResponse.json(
         { 
           error: '포인트가 부족합니다.', 
           required: MARKET_CREATION_COST,
-          available: userPoints.available_points 
+          available: userPoints.total_points 
         },
         { status: 400 }
       );
     }
 
-    // 마켓 생성
+    // 마켓 생성 (먼저 생성 후 포인트 차감)
     const { data: market, error: marketError } = await supabase
       .from('markets')
       .insert({
@@ -79,8 +80,6 @@ export async function POST(request: NextRequest) {
         option_no,
         closes_at,
         status: 'pending', // 관리자 승인 대기
-        min_points: 10,
-        max_points: 1000,
       })
       .select()
       .single();
@@ -93,27 +92,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 포인트 차감 트랜잭션 생성
-    const { error: transactionError } = await supabase
-      .from('point_transactions')
-      .insert({
-        user_id: user.id,
-        transaction_type: 'market_creation',
-        amount: -MARKET_CREATION_COST,
-        market_id: market.id,
-        description: '마켓 개설',
-        status: 'completed',
+    // RPC 함수로 포인트 차감 (트랜잭션 포함)
+    const { data: deductResult, error: deductError } = await supabase
+      .rpc('deduct_points_for_market_creation', {
+        p_user_id: user.id,
+        p_market_id: market.id,
+        p_amount: MARKET_CREATION_COST
       });
 
-    if (transactionError) {
-      console.error('트랜잭션 생성 오류:', transactionError);
-      // 마켓은 생성되었지만 트랜잭션 실패 (관리자가 수동으로 처리 필요)
+    if (deductError) {
+      console.error('포인트 차감 RPC 오류:', deductError);
+      // 마켓 삭제 (롤백)
+      await supabase.from('markets').delete().eq('id', market.id);
+      return NextResponse.json(
+        { error: '포인트 차감에 실패했습니다.' },
+        { status: 500 }
+      );
+    }
+
+    if (!deductResult?.success) {
+      console.error('포인트 차감 실패:', deductResult);
+      // 마켓 삭제 (롤백)
+      await supabase.from('markets').delete().eq('id', market.id);
+      return NextResponse.json(
+        { 
+          error: deductResult?.error || '포인트 차감에 실패했습니다.',
+          required: MARKET_CREATION_COST,
+          available: deductResult?.available
+        },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json({
       success: true,
       message: '마켓이 생성되었습니다. 관리자 승인 후 활성화됩니다.',
       market,
+      pointsDeducted: MARKET_CREATION_COST,
+      remainingPoints: deductResult.remaining
     });
   } catch (error) {
     console.error('마켓 생성 API 오류:', error);

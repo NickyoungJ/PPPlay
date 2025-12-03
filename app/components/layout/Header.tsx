@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FaBars, FaTimes, FaUser, FaCoins, FaSignOutAlt } from 'react-icons/fa';
+import { FaBars, FaTimes, FaUser, FaCoins, FaSignOutAlt, FaPlus } from 'react-icons/fa';
 import { useAuth } from '@/app/hooks/useAuth';
 
 export default function Header() {
@@ -69,6 +69,15 @@ export default function Header() {
                 <Link href="/markets" className="text-foreground/80 hover:text-primary font-medium transition-colors">
                   마켓
                 </Link>
+                {isAuthenticated && (
+                  <Link 
+                    href="/markets/create" 
+                    className="flex items-center gap-1 bg-gradient-to-r from-primary to-secondary text-white px-3 py-1.5 rounded-full font-medium hover:opacity-90 transition-all text-sm"
+                  >
+                    <FaPlus className="text-xs" />
+                    마켓 만들기
+                  </Link>
+                )}
                 <Link href="/leaderboard" className="text-foreground/80 hover:text-primary font-medium transition-colors">
                   상점
                 </Link>
@@ -186,6 +195,16 @@ export default function Header() {
                   >
                     마켓
                   </Link>
+                  {isAuthenticated && (
+                    <Link 
+                      href="/markets/create" 
+                      className="flex items-center gap-2 mx-4 bg-gradient-to-r from-primary to-secondary text-white px-4 py-2 rounded-xl font-medium hover:opacity-90 transition-all"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <FaPlus className="text-sm" />
+                      마켓 만들기
+                    </Link>
+                  )}
                   <Link 
                     href="/leaderboard" 
                     className="text-foreground/80 hover:text-primary font-medium transition-colors px-4 py-2"

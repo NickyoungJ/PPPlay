@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { requireAdmin } from '@/utils/admin';
 
+const MARKET_CREATION_COST = 1000;
+
 // 마켓 거부
 export async function POST(request: NextRequest) {
   try {
@@ -34,6 +36,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 이미 처리된 마켓인지 확인
+    if (market.status !== 'pending') {
+      return NextResponse.json(
+        { error: '이미 처리된 마켓입니다.' },
+        { status: 400 }
+      );
+    }
+
     // 마켓 상태를 cancelled로 변경
     const { error: updateError } = await supabase
       .from('markets')
@@ -52,21 +62,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 생성자에게 포인트 환불 (1000P)
+    // 생성자에게 포인트 환불 (RPC 함수 사용)
+    let refundSuccess = false;
     if (market.creator_id) {
-      await supabase.from('point_transactions').insert({
-        user_id: market.creator_id,
-        transaction_type: 'prediction_refund',
-        amount: 1000, // 마켓 생성 비용 환불
-        market_id: market.id,
-        description: `마켓 거부 환불: ${reason || '부적절한 내용'}`,
-        status: 'completed',
-      });
+      const { data: refundResult, error: refundError } = await supabase
+        .rpc('refund_market_creation', {
+          p_user_id: market.creator_id,
+          p_market_id: market.id,
+          p_amount: MARKET_CREATION_COST
+        });
+
+      if (refundError) {
+        console.error('포인트 환불 RPC 오류:', refundError);
+      } else if (refundResult?.success) {
+        refundSuccess = true;
+      }
     }
 
     return NextResponse.json({
       success: true,
-      message: '마켓이 거부되었습니다. 생성자에게 포인트가 환불되었습니다.',
+      message: refundSuccess 
+        ? '마켓이 거부되었습니다. 생성자에게 1000P가 환불되었습니다.'
+        : '마켓이 거부되었습니다. (환불 처리 실패 - 관리자 확인 필요)',
+      refunded: refundSuccess,
+      refundAmount: refundSuccess ? MARKET_CREATION_COST : 0
     });
   } catch (error: any) {
     console.error('API 오류:', error);
