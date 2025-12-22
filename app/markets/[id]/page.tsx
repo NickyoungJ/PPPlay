@@ -7,6 +7,8 @@ import Footer from '../../components/layout/Footer';
 import { useAuth } from '../../hooks/useAuth';
 import { FaArrowLeft, FaClock, FaUsers, FaCoins, FaSpinner, FaCheckCircle } from 'react-icons/fa';
 import { supabaseClient } from '@/utils/supabase/client';
+import { showVoteSuccess, showError, showWarning } from '@/utils/toast';
+import { MarketDetailSkeleton } from '../../components/ui/Skeleton';
 
 interface MarketDetail {
   id: string;
@@ -78,7 +80,7 @@ export default function MarketDetailPage() {
     */
 
     if (!selectedOption) {
-      alert('Yes 또는 No를 선택해주세요.');
+      showWarning('Yes 또는 No를 선택해주세요.');
       return;
     }
 
@@ -97,18 +99,18 @@ export default function MarketDetailPage() {
       const data = await response.json();
 
       if (data.success) {
-        alert('✅ 투표에 참여했습니다! +5P 적립 완료 🎉');
+        showVoteSuccess(selectedOption === 'yes' ? 'YES' : 'NO');
         setHasVoted(true);
         fetchMarketDetail(); // 마켓 정보 새로고침
         
         // 헤더의 포인트를 즉시 갱신
         window.dispatchEvent(new Event('pointsUpdated'));
       } else {
-        alert(data.error || '투표 참여에 실패했습니다.');
+        showError(data.error || '투표 참여에 실패했습니다.');
       }
     } catch (error) {
       console.error('투표 제출 오류:', error);
-      alert('서버 오류가 발생했습니다.');
+      showError('서버 오류가 발생했습니다.');
     } finally {
       setSubmitting(false);
     }
@@ -153,10 +155,9 @@ export default function MarketDetailPage() {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <FaSpinner className="animate-spin text-5xl text-primary mx-auto mb-4" />
-            <p className="text-foreground/70">마켓을 불러오는 중...</p>
+        <main className="flex-1 px-4 md:px-8 py-12">
+          <div className="max-w-5xl mx-auto">
+            <MarketDetailSkeleton />
           </div>
         </main>
         <Footer />

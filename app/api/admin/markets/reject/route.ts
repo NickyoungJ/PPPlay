@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { requireAdmin } from '@/utils/admin';
+import { notifyMarketRejected } from '@/utils/notifications';
 
 const MARKET_CREATION_COST = 1000;
 
 // 마켓 거부
 export async function POST(request: NextRequest) {
   try {
-    // 🔥 임시: 관리자 권한 체크 비활성화
-    // await requireAdmin();
+    // ✅ 관리자 권한 체크 복구
+    await requireAdmin();
 
     const body = await request.json();
     const { market_id, reason } = body;
@@ -76,6 +77,18 @@ export async function POST(request: NextRequest) {
         console.error('포인트 환불 RPC 오류:', refundError);
       } else if (refundResult?.success) {
         refundSuccess = true;
+        
+        // 🔔 알림 생성
+        try {
+          await notifyMarketRejected(
+            market.creator_id, 
+            market.title, 
+            market.id, 
+            MARKET_CREATION_COST
+          );
+        } catch (notifyError) {
+          console.error('마켓 거절 알림 생성 오류:', notifyError);
+        }
       }
     }
 

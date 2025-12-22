@@ -1,15 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '../../components/layout/Header';
 import Footer from '../../components/layout/Footer';
 import { useAuth } from '../../hooks/useAuth';
 import { FaArrowLeft, FaSpinner } from 'react-icons/fa';
+import { showMarketCreated, showError } from '@/utils/toast';
 
 export default function CreateMarketPage() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -23,9 +24,31 @@ export default function CreateMarketPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // 인증 확인
+  // 인증 확인 - 로딩이 끝난 후에만 체크
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/auth');
+    }
+  }, [authLoading, isAuthenticated, router]);
+
+  // 로딩 중이거나 인증되지 않은 경우 로딩 표시
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <FaSpinner className="animate-spin text-4xl text-primary mx-auto mb-4" />
+            <p className="text-foreground/70">로딩 중...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // 인증되지 않은 경우 (리다이렉트 대기 중)
   if (!isAuthenticated) {
-    router.push('/auth');
     return null;
   }
 
@@ -64,13 +87,17 @@ export default function CreateMarketPage() {
       const data = await response.json();
 
       if (data.success) {
-        alert('마켓이 생성되었습니다! 관리자 승인 후 활성화됩니다.');
+        // 헤더 포인트 업데이트 이벤트 발생
+        window.dispatchEvent(new Event('pointsUpdated'));
+        showMarketCreated();
         router.push('/markets');
       } else {
+        showError(data.error || '마켓 생성에 실패했습니다.');
         setError(data.error || '마켓 생성에 실패했습니다.');
       }
     } catch (err) {
       console.error('마켓 생성 오류:', err);
+      showError('서버 오류가 발생했습니다.');
       setError('서버 오류가 발생했습니다.');
     } finally {
       setLoading(false);

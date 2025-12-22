@@ -7,6 +7,7 @@ import Footer from '../../components/layout/Footer';
 // import { useAuth } from '../../hooks/useAuth'; // 🔥 임시: 리다이렉트 방지를 위해 주석 처리
 import { FaArrowLeft, FaSpinner, FaCheckCircle, FaClock } from 'react-icons/fa';
 import { supabaseClient } from '@/utils/supabase/client';
+import { showSuccess, showError, showWarning } from '@/utils/toast';
 
 interface Market {
   id: string;
@@ -53,14 +54,14 @@ export default function SettleMarketsPage() {
 
       if (error) {
         console.error('마켓 조회 오류:', error);
-        alert('마켓을 불러올 수 없습니다.');
+        showError('마켓을 불러올 수 없습니다.');
         return;
       }
 
       setMarkets(data || []);
     } catch (error) {
       console.error('마켓 조회 오류:', error);
-      alert('서버 오류가 발생했습니다.');
+      showError('서버 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -69,7 +70,7 @@ export default function SettleMarketsPage() {
   const handleSettle = async (marketId: string) => {
     const result = selectedResult[marketId];
     if (!result) {
-      alert('결과를 선택해주세요.');
+      showWarning('결과를 선택해주세요.');
       return;
     }
 
@@ -94,15 +95,15 @@ export default function SettleMarketsPage() {
       const data = await response.json();
 
       if (data.success) {
-        alert('마켓 결과가 확정되고 정산이 완료되었습니다!');
+        showSuccess('마켓 결과가 확정되고 정산이 완료되었습니다! 🎉');
         fetchClosedMarkets();
       } else {
         console.error('❌ 정산 실패:', data);
-        alert(`결과 확정에 실패했습니다.\n\n에러: ${data.error}\n\n자세한 내용: ${data.details || '없음'}`);
+        showError(`결과 확정에 실패했습니다: ${data.error}`);
       }
     } catch (error) {
       console.error('결과 확정 오류:', error);
-      alert('서버 오류가 발생했습니다.');
+      showError('서버 오류가 발생했습니다.');
     } finally {
       setSettlingId(null);
     }

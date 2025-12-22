@@ -7,7 +7,9 @@ import Footer from '../components/layout/Footer';
 import CategoryFilter from '../components/market/CategoryFilter';
 import GeneralMarketCard from '../components/market/GeneralMarketCard';
 import { useAuth } from '../hooks/useAuth';
-import { FaPlus, FaSpinner } from 'react-icons/fa';
+import { FaPlus } from 'react-icons/fa';
+import { MarketGridSkeleton } from '../components/ui/Skeleton';
+import { EmptyMarkets, EmptyFilterResults } from '../components/ui/EmptyState';
 
 interface Market {
   id: string;
@@ -112,17 +114,17 @@ export default function MarketsPage() {
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
-      <main className="flex-1 px-4 md:px-8 py-12">
+      <main className="flex-1 px-3 sm:px-4 md:px-8 py-6 sm:py-12">
         <div className="max-w-7xl mx-auto">
-          {/* 페이지 헤더 */}
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-12 gap-6">
+          {/* 페이지 헤더 - 모바일 최적화 */}
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 sm:mb-12 gap-4 sm:gap-6">
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-3">
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-1 sm:mb-3">
                 <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
                   예측 마켓
                 </span>
               </h1>
-              <p className="text-foreground/70 text-lg">
+              <p className="text-foreground/70 text-sm sm:text-lg">
                 다양한 이슈에 대해 예측하고 포인트를 획득하세요
               </p>
             </div>
@@ -130,16 +132,16 @@ export default function MarketsPage() {
             {isAuthenticated && (
               <button
                 onClick={() => router.push('/markets/create')}
-                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white px-8 py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all flex items-center gap-3 whitespace-nowrap"
+                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 active:scale-95 text-white px-4 sm:px-8 py-2.5 sm:py-4 rounded-xl sm:rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all flex items-center gap-2 sm:gap-3 whitespace-nowrap text-sm sm:text-base btn-press"
               >
-                <FaPlus className="text-xl" />
+                <FaPlus className="text-base sm:text-xl" />
                 <span>마켓 만들기</span>
               </button>
             )}
           </div>
 
-          {/* 카테고리 필터 */}
-          <div className="mb-8">
+          {/* 카테고리 필터 - 모바일 스크롤 */}
+          <div className="mb-4 sm:mb-8 -mx-3 sm:mx-0 px-3 sm:px-0 overflow-x-auto scrollbar-hide">
             <CategoryFilter
               selectedCategory={selectedCategory}
               onCategoryChange={setSelectedCategory}
@@ -148,43 +150,25 @@ export default function MarketsPage() {
 
           {/* 마켓 리스트 */}
           {loading ? (
-            <div className="flex items-center justify-center py-32">
-              <div className="text-center">
-                <FaSpinner className="animate-spin text-5xl text-primary mx-auto mb-4" />
-                <p className="text-foreground/70">마켓을 불러오는 중...</p>
-              </div>
-            </div>
+            <MarketGridSkeleton count={6} />
           ) : markets.length === 0 ? (
-            <div className="text-center py-32">
-              <div className="mb-6">
-                <div className="w-24 h-24 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="text-5xl">📭</span>
-                </div>
-              </div>
-              <h3 className="text-2xl font-bold text-foreground/90 mb-3">
-                마켓이 없습니다
-              </h3>
-              <p className="text-foreground/60 mb-8 text-lg">
-                첫 번째 마켓을 만들어보세요!
-              </p>
-              {isAuthenticated && (
-                <button
-                  onClick={() => router.push('/markets/create')}
-                  className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white px-8 py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all inline-flex items-center gap-2"
-                >
-                  <FaPlus />
-                  <span>마켓 만들기</span>
-                </button>
-              )}
-            </div>
+            selectedCategory === 'all' ? (
+              <EmptyMarkets isAuthenticated={isAuthenticated} />
+            ) : (
+              <EmptyFilterResults />
+            )
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {markets.map((market) => (
-                <GeneralMarketCard
+              {markets.map((market, index) => (
+                <div
                   key={market.id}
-                  market={market}
-                  onPredict={handlePredict}
-                />
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  <GeneralMarketCard
+                    market={market}
+                    onPredict={handlePredict}
+                  />
+                </div>
               ))}
             </div>
           )}

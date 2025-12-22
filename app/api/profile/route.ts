@@ -6,12 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
     
-    // 🔥 임시: 테스트 사용자 ID 사용
-    const TEST_USER_ID = '00000000-0000-0000-0000-000000000001';
-    const user = { id: TEST_USER_ID };
-    
-    /*
-    // 실제 인증 (나중에 활성화)
+    // ✅ 인증 복구: 실제 사용자 확인
     const {
       data: { user },
       error: authError,
@@ -23,7 +18,6 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       );
     }
-    */
 
     // 1. 포인트 정보 조회
     const { data: userPoints, error: pointsError } = await supabase
@@ -34,13 +28,28 @@ export async function GET(request: NextRequest) {
 
     if (pointsError) {
       console.error('포인트 조회 오류:', pointsError);
-      return NextResponse.json(
-        { error: '포인트 정보를 불러올 수 없습니다.' },
-        { status: 500 }
-      );
+      // 신규 사용자일 경우 user_points 레코드가 없을 수 있음
+      // 기본값으로 응답
+      return NextResponse.json({
+        success: true,
+        profile: {
+          points: {
+            total: 100, // 신규 가입 보너스
+            available: 100,
+            daily_votes: 0,
+            daily_limit: 10,
+          },
+          stats: {
+            total_votes: 0,
+            correct_votes: 0,
+            win_rate: 0,
+          },
+          recent_predictions: [],
+        },
+      });
     }
 
-    // 2. 최근 투표 내역 조회 (최근 5개)
+    // 2. 최근 투표 내역 조회 (최근 50개로 확대)
     const { data: recentPredictions, error: predictionsError } = await supabase
       .from('predictions')
       .select(`
@@ -60,10 +69,29 @@ export async function GET(request: NextRequest) {
       `)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
-      .limit(5);
+      .limit(50);
 
     if (predictionsError) {
       console.error('투표 내역 조회 오류:', predictionsError);
+    }
+
+    // 3. 포인트 트랜잭션 히스토리 조회 (최근 50개로 확대)
+    const { data: pointHistory, error: historyError } = await supabase
+      .from('point_transactions')
+      .select(`
+        id,
+        transaction_type,
+        amount,
+        balance_after,
+        description,
+        created_at
+      `)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (historyError) {
+      console.error('포인트 히스토리 조회 오류:', historyError);
     }
 
     return NextResponse.json({
@@ -84,6 +112,8 @@ export async function GET(request: NextRequest) {
         },
         // 최근 투표 내역
         recent_predictions: recentPredictions || [],
+        // 포인트 히스토리
+        point_history: pointHistory || [],
       },
     });
   } catch (error) {
@@ -94,4 +124,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

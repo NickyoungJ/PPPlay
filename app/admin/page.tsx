@@ -9,6 +9,7 @@ import {
   FaCheckCircle, FaTimesCircle, FaSpinner, FaChartBar, 
   FaUsers, FaCoins, FaExclamationTriangle, FaClipboardCheck 
 } from 'react-icons/fa';
+import { showSuccess, showError } from '@/utils/toast';
 
 interface Market {
   id: string;
@@ -97,14 +98,14 @@ export default function AdminDashboard() {
       if (data.success) {
         setStats(data.stats);
       } else {
-        alert(data.error || '통계를 불러올 수 없습니다.');
+        showError(data.error || '통계를 불러올 수 없습니다.');
         if (response.status === 403) {
           router.push('/');
         }
       }
     } catch (error) {
       console.error('통계 조회 오류:', error);
-      alert('서버 오류가 발생했습니다.');
+      showError('서버 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -119,14 +120,14 @@ export default function AdminDashboard() {
       if (data.success) {
         setPendingMarkets(data.markets);
       } else {
-        alert(data.error || '마켓을 불러올 수 없습니다.');
+        showError(data.error || '마켓을 불러올 수 없습니다.');
         if (response.status === 403) {
           router.push('/');
         }
       }
     } catch (error) {
       console.error('마켓 조회 오류:', error);
-      alert('서버 오류가 발생했습니다.');
+      showError('서버 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -146,14 +147,14 @@ export default function AdminDashboard() {
       const data = await response.json();
 
       if (data.success) {
-        alert('마켓이 승인되었습니다!');
+        showSuccess('마켓이 승인되었습니다! ✅');
         fetchPendingMarkets();
       } else {
-        alert(data.error || '승인에 실패했습니다.');
+        showError(data.error || '승인에 실패했습니다.');
       }
     } catch (error) {
       console.error('승인 오류:', error);
-      alert('서버 오류가 발생했습니다.');
+      showError('서버 오류가 발생했습니다.');
     } finally {
       setActionLoading(null);
     }
@@ -174,14 +175,14 @@ export default function AdminDashboard() {
       const data = await response.json();
 
       if (data.success) {
-        alert('마켓이 거부되었습니다. 생성자에게 포인트가 환불되었습니다.');
+        showSuccess('마켓이 거부되었습니다. 포인트가 환불되었습니다.');
         fetchPendingMarkets();
       } else {
-        alert(data.error || '거부에 실패했습니다.');
+        showError(data.error || '거부에 실패했습니다.');
       }
     } catch (error) {
       console.error('거부 오류:', error);
-      alert('서버 오류가 발생했습니다.');
+      showError('서버 오류가 발생했습니다.');
     } finally {
       setActionLoading(null);
     }

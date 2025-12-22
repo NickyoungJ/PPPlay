@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { requireAdmin } from '@/utils/admin';
+import { notifyMarketApproved } from '@/utils/notifications';
 
 // 마켓 승인
 export async function POST(request: NextRequest) {
   try {
-    // 🔥 임시: 관리자 권한 체크 비활성화
-    // await requireAdmin();
+    // ✅ 관리자 권한 체크 복구
+    await requireAdmin();
 
     const body = await request.json();
     const { market_id } = body;
@@ -49,6 +50,13 @@ export async function POST(request: NextRequest) {
         description: '마켓 승인 보너스',
         status: 'completed',
       });
+
+      // 🔔 알림 생성
+      try {
+        await notifyMarketApproved(market.creator_id, market.title, market.id);
+      } catch (notifyError) {
+        console.error('마켓 승인 알림 생성 오류:', notifyError);
+      }
     }
 
     return NextResponse.json({

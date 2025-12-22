@@ -93,6 +93,8 @@ export async function POST(request: NextRequest) {
     }
 
     // RPC 함수로 포인트 차감 (트랜잭션 포함)
+    console.log('RPC 호출 시작:', { userId: user.id, marketId: market.id, amount: MARKET_CREATION_COST });
+    
     const { data: deductResult, error: deductError } = await supabase
       .rpc('deduct_points_for_market_creation', {
         p_user_id: user.id,
@@ -100,12 +102,14 @@ export async function POST(request: NextRequest) {
         p_amount: MARKET_CREATION_COST
       });
 
+    console.log('RPC 결과:', { deductResult, deductError });
+
     if (deductError) {
-      console.error('포인트 차감 RPC 오류:', deductError);
+      console.error('포인트 차감 RPC 오류:', JSON.stringify(deductError, null, 2));
       // 마켓 삭제 (롤백)
       await supabase.from('markets').delete().eq('id', market.id);
       return NextResponse.json(
-        { error: '포인트 차감에 실패했습니다.' },
+        { error: '포인트 차감에 실패했습니다.', details: deductError.message },
         { status: 500 }
       );
     }

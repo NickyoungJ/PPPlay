@@ -7,41 +7,19 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
     
-    // 🔥 임시: 인증 비활성화 (테스트용)
-    // 테스트용 더미 사용자 ID
-    const TEST_USER_ID = '00000000-0000-0000-0000-000000000001';
-    
-    // 사용자 인증 확인 (일단 주석 처리)
-    /*
+    // ✅ 인증 복구: 실제 사용자 확인
     const {
       data: { user },
       error: authError,
     } = await supabase.auth.getUser();
 
-    // 디버깅 로그
-    console.log('🔐 Auth Check:', {
-      hasUser: !!user,
-      userId: user?.id,
-      authError: authError?.message,
-    });
-
     if (authError || !user) {
       console.error('❌ 인증 실패:', authError);
       return NextResponse.json(
-        { 
-          error: '로그인이 필요합니다.',
-          debug: {
-            authError: authError?.message,
-            hasUser: !!user,
-          }
-        },
+        { error: '로그인이 필요합니다.' },
         { status: 401 }
       );
     }
-    */
-    
-    // 임시 더미 사용자 객체
-    const user = { id: TEST_USER_ID };
 
     const body = await request.json();
     const { market_id, predicted_option } = body;
@@ -158,8 +136,6 @@ export async function POST(request: NextRequest) {
     await supabase.rpc('increment_daily_vote_count', { p_user_id: user.id });
 
     // 마켓 통계 업데이트 (투표 수 증가)
-    // 주의: 트리거(update_market_stats_on_vote)가 자동으로 처리하지만, 
-    // 수동으로도 호출 가능
     await supabase.rpc('update_market_stats_for_poll', {
       p_market_id: market_id,
       p_option: predicted_option,
@@ -193,4 +169,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

@@ -10,18 +10,25 @@ const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',') || [
  */
 export async function isAdmin(): Promise<boolean> {
   try {
-    const supabase = createClient();
+    const supabase = await createClient(); // ✅ await 추가
     const {
       data: { user },
       error,
     } = await supabase.auth.getUser();
 
     if (error || !user) {
+      console.log('🔐 Admin check - No user:', { error: error?.message });
       return false;
     }
 
-    // 이메일이 관리자 목록에 있는지 확인
-    return ADMIN_EMAILS.includes(user.email || '');
+    const isAdminUser = ADMIN_EMAILS.includes(user.email || '');
+    console.log('🔐 Admin check:', { 
+      email: user.email, 
+      isAdmin: isAdminUser,
+      adminEmails: ADMIN_EMAILS 
+    });
+    
+    return isAdminUser;
   } catch (error) {
     console.error('관리자 확인 오류:', error);
     return false;
@@ -43,7 +50,7 @@ export async function requireAdmin(): Promise<void> {
  * 사용자 정보와 함께 관리자 여부 반환
  */
 export async function getAdminStatus() {
-  const supabase = createClient();
+  const supabase = await createClient(); // ✅ await 추가
   const {
     data: { user },
     error,
@@ -60,4 +67,3 @@ export async function getAdminStatus() {
     isAdmin: adminStatus,
   };
 }
-

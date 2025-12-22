@@ -5,8 +5,8 @@ import { requireAdmin, getAdminStatus } from '@/utils/admin';
 // 마켓 결과 확정 및 정산
 export async function POST(request: NextRequest) {
   try {
-    // 🔥 임시: 관리자 권한 체크 비활성화 (테스트용)
-    // await requireAdmin();
+    // ✅ 관리자 권한 체크 복구
+    await requireAdmin();
 
     const body = await request.json();
     const { market_id, result, description } = body;
@@ -26,10 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient();
-    // const { user } = await getAdminStatus();
-    
-    // 🔥 임시: 테스트용 관리자 ID
-    const TEST_ADMIN_ID = '00000000-0000-0000-0000-000000000001';
+    const { user } = await getAdminStatus();
 
     // settle_market_simple 함수 호출 (간소화된 정산)
     const { data: settlementResult, error: settlementError } = await supabase.rpc(
@@ -37,7 +34,7 @@ export async function POST(request: NextRequest) {
       { 
         p_market_id: market_id,
         p_result: result,
-        p_admin_id: TEST_ADMIN_ID 
+        p_admin_id: user?.id 
       }
     );
 
@@ -74,4 +71,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

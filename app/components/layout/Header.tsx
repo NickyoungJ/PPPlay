@@ -2,14 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FaBars, FaTimes, FaUser, FaCoins, FaSignOutAlt, FaPlus } from 'react-icons/fa';
+import { FaBars, FaTimes, FaUser, FaCoins, FaSignOutAlt, FaCog, FaCalendarCheck } from 'react-icons/fa';
 import { useAuth } from '@/app/hooks/useAuth';
+import AttendanceModal from '../attendance/AttendanceModal';
+import NotificationDropdown from '../notifications/NotificationDropdown';
+
+// 관리자 이메일 목록 (환경변수 또는 기본값)
+const ADMIN_EMAILS = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',') || [
+  'admin@ppplay.com',
+];
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [userCoins, setUserCoins] = useState(0);
+  const [showAttendanceModal, setShowAttendanceModal] = useState(false);
   const { user, loading, signOut, isAuthenticated } = useAuth();
+  
+  // 관리자 여부 확인
+  const isAdmin = user?.email && ADMIN_EMAILS.includes(user.email);
   
   // 실시간 포인트 가져오기
   useEffect(() => {
@@ -51,12 +62,12 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-background/90 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <header className="bg-background/90 backdrop-blur-md border-b border-white/10 sticky top-0 z-50 safe-area-top">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-14 sm:h-16">
           {/* 로고 */}
           <Link href="/" className="flex items-center">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               PPPlay
             </h1>
           </Link>
@@ -69,37 +80,53 @@ export default function Header() {
                 <Link href="/markets" className="text-foreground/80 hover:text-primary font-medium transition-colors">
                   마켓
                 </Link>
-                {isAuthenticated && (
-                  <Link 
-                    href="/markets/create" 
-                    className="flex items-center gap-1 bg-gradient-to-r from-primary to-secondary text-white px-3 py-1.5 rounded-full font-medium hover:opacity-90 transition-all text-sm"
-                  >
-                    <FaPlus className="text-xs" />
-                    마켓 만들기
-                  </Link>
-                )}
+                <Link href="/ranking" className="text-foreground/80 hover:text-primary font-medium transition-colors">
+                  랭킹
+                </Link>
                 <Link href="/leaderboard" className="text-foreground/80 hover:text-primary font-medium transition-colors">
                   상점
                 </Link>
+                {/* 관리자 메뉴 (관리자만 표시) */}
+                {isAdmin && (
+                  <Link 
+                    href="/admin" 
+                    className="flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1.5 rounded-full font-medium hover:opacity-90 transition-all text-sm"
+                  >
+                    <FaCog className="text-xs" />
+                    관리자
+                  </Link>
+                )}
               </nav>
 
           {/* 사용자 영역 */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-1.5 sm:space-x-3">
             {loading ? (
-              <div className="animate-pulse bg-background/40 rounded-full h-10 w-20"></div>
+              <div className="animate-pulse bg-background/40 rounded-full h-8 sm:h-10 w-16 sm:w-20"></div>
             ) : isAuthenticated ? (
               <>
-                {/* 코인 표시 */}
-                <div className="hidden sm:flex items-center bg-background/40 border border-primary/20 rounded-full px-3 py-1">
-                  <FaCoins className="text-accent mr-1" />
-                  <span className="text-sm font-semibold text-foreground">{userCoins.toLocaleString()}</span>
+                {/* 출석 체크 버튼 - 모바일에서 아이콘만 */}
+                <button
+                  onClick={() => setShowAttendanceModal(true)}
+                  className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white p-2 sm:px-3 sm:py-1.5 rounded-full font-medium hover:opacity-90 transition-all text-sm btn-press hover-glow"
+                >
+                  <FaCalendarCheck className="text-sm sm:text-base" />
+                  <span className="hidden sm:inline">출석</span>
+                </button>
+                
+                {/* 알림 아이콘 */}
+                <NotificationDropdown />
+                
+                {/* 코인 표시 - 모바일에서 더 컴팩트하게 */}
+                <div className="flex items-center bg-background/40 border border-primary/20 rounded-full px-2 sm:px-3 py-1">
+                  <FaCoins className="text-accent mr-1 text-xs sm:text-sm" />
+                  <span className="text-xs sm:text-sm font-semibold text-foreground">{userCoins.toLocaleString()}</span>
                 </div>
                 
-                {/* 프로필 메뉴 */}
+                {/* 프로필 메뉴 - 모바일에서 아이콘만 */}
                 <div className="relative">
                   <button 
                     onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="flex items-center space-x-2 bg-background/40 rounded-full px-3 py-2 hover:bg-background/60 transition-colors border border-primary/20"
+                    className="flex items-center space-x-1 sm:space-x-2 bg-background/40 rounded-full p-1.5 sm:px-3 sm:py-2 hover:bg-background/60 transition-colors border border-primary/20"
                   >
                     {user?.user_metadata?.avatar_url ? (
                       <img 
@@ -108,11 +135,17 @@ export default function Header() {
                         className="w-6 h-6 rounded-full"
                       />
                     ) : (
-                      <FaUser className="text-foreground/70" />
+                      <FaUser className="text-foreground/70 text-sm sm:text-base" />
                     )}
-                    <span className="hidden sm:block text-sm font-medium text-foreground">
+                    <span className="hidden md:block text-sm font-medium text-foreground">
                       {user?.user_metadata?.full_name || user?.email?.split('@')[0] || '사용자'}
                     </span>
+                    {/* 관리자 뱃지 */}
+                    {isAdmin && (
+                      <span className="hidden md:inline-block px-1.5 py-0.5 bg-amber-500 text-white text-xs rounded-full font-bold">
+                        Admin
+                      </span>
+                    )}
                   </button>
                   
                   {/* 사용자 드롭다운 메뉴 */}
@@ -123,6 +156,11 @@ export default function Header() {
                           {user?.user_metadata?.full_name || user?.email?.split('@')[0]}
                         </p>
                         <p className="text-xs text-foreground/60">{user?.email}</p>
+                        {isAdmin && (
+                          <span className="inline-block mt-1 px-2 py-0.5 bg-amber-500 text-white text-xs rounded-full font-bold">
+                            관리자
+                          </span>
+                        )}
                       </div>
                       <Link
                         href="/profile"
@@ -132,6 +170,17 @@ export default function Header() {
                         <FaUser className="mr-2" />
                         프로필
                       </Link>
+                      {/* 관리자 메뉴 (드롭다운) */}
+                      {isAdmin && (
+                        <Link
+                          href="/admin"
+                          className="flex items-center px-4 py-2 text-sm text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <FaCog className="mr-2" />
+                          관리자 대시보드
+                        </Link>
+                      )}
                       <button
                         onClick={() => {
                           setShowUserMenu(false);
@@ -147,18 +196,19 @@ export default function Header() {
                 </div>
               </>
             ) : (
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2 sm:space-x-3">
                 <Link 
                   href="/auth"
-                  className="border border-primary/50 text-primary px-4 py-2 rounded-2xl font-medium hover:bg-primary/10 transition-colors"
+                  className="hidden sm:block border border-primary/50 text-primary px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl font-medium hover:bg-primary/10 transition-colors text-sm sm:text-base"
                 >
                   로그인
                 </Link>
                 <Link 
                   href="/auth"
-                  className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-2xl font-medium transition-colors"
+                  className="bg-primary hover:bg-primary/90 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl font-medium transition-colors text-sm sm:text-base"
                 >
-                  회원가입
+                  <span className="sm:hidden">로그인</span>
+                  <span className="hidden sm:inline">회원가입</span>
                 </Link>
               </div>
             )}
@@ -195,16 +245,13 @@ export default function Header() {
                   >
                     마켓
                   </Link>
-                  {isAuthenticated && (
-                    <Link 
-                      href="/markets/create" 
-                      className="flex items-center gap-2 mx-4 bg-gradient-to-r from-primary to-secondary text-white px-4 py-2 rounded-xl font-medium hover:opacity-90 transition-all"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <FaPlus className="text-sm" />
-                      마켓 만들기
-                    </Link>
-                  )}
+                  <Link 
+                    href="/ranking" 
+                    className="text-foreground/80 hover:text-primary font-medium transition-colors px-4 py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    랭킹
+                  </Link>
                   <Link 
                     href="/leaderboard" 
                     className="text-foreground/80 hover:text-primary font-medium transition-colors px-4 py-2"
@@ -212,10 +259,33 @@ export default function Header() {
                   >
                     상점
                   </Link>
+                  {/* 관리자 메뉴 (모바일) */}
+                  {isAdmin && (
+                    <Link 
+                      href="/admin" 
+                      className="flex items-center gap-2 mx-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-xl font-medium hover:opacity-90 transition-all"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <FaCog className="text-sm" />
+                      관리자 대시보드
+                    </Link>
+                  )}
               
               {/* 모바일 인증 영역 */}
               {isAuthenticated ? (
                 <>
+                  {/* 출석 체크 버튼 (모바일) */}
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      setShowAttendanceModal(true);
+                    }}
+                    className="flex items-center justify-center gap-2 mx-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-3 rounded-xl font-medium hover:opacity-90 transition-all"
+                  >
+                    <FaCalendarCheck />
+                    <span>출석 체크</span>
+                  </button>
+                  
                   <div className="flex items-center justify-between px-4 py-2 bg-background/40 border border-primary/20 rounded-lg mx-4">
                     <span className="text-sm text-foreground/70">보유 코인</span>
                     <div className="flex items-center">
@@ -239,6 +309,11 @@ export default function Header() {
                       <div>
                         <p className="text-sm font-medium text-foreground">
                           {user?.user_metadata?.full_name || user?.email?.split('@')[0]}
+                          {isAdmin && (
+                            <span className="ml-2 px-1.5 py-0.5 bg-amber-500 text-white text-xs rounded-full font-bold">
+                              Admin
+                            </span>
+                          )}
                         </p>
                         <p className="text-xs text-foreground/60">{user?.email}</p>
                       </div>
@@ -277,6 +352,12 @@ export default function Header() {
           </div>
         )}
       </div>
+      
+      {/* 출석 체크 모달 */}
+      <AttendanceModal
+        isOpen={showAttendanceModal}
+        onClose={() => setShowAttendanceModal(false)}
+      />
     </header>
   );
 }

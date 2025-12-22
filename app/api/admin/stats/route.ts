@@ -5,8 +5,8 @@ import { requireAdmin } from '@/utils/admin';
 // 관리자 통계 조회
 export async function GET(request: NextRequest) {
   try {
-    // 🔥 임시: 관리자 권한 체크 비활성화
-    // await requireAdmin();
+    // ✅ 관리자 권한 체크 복구
+    await requireAdmin();
 
     const supabase = await createClient();
 
