@@ -1,15 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import CategoryFilter from '../components/market/CategoryFilter';
 import GeneralMarketCard from '../components/market/GeneralMarketCard';
 import { useAuth } from '../hooks/useAuth';
-import { FaPlus } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaTimes, FaSortAmountDown } from 'react-icons/fa';
 import { MarketGridSkeleton } from '../components/ui/Skeleton';
-import { EmptyMarkets, EmptyFilterResults } from '../components/ui/EmptyState';
+import { EmptyMarkets, EmptyFilterResults, EmptySearchResults } from '../components/ui/EmptyState';
 
 interface Market {
   id: string;
@@ -28,6 +28,14 @@ interface Market {
   created_at: string;
 }
 
+// 정렬 옵션
+const SORT_OPTIONS = [
+  { value: 'latest', label: '최신순', icon: '🆕' },
+  { value: 'popular', label: '인기순', icon: '🔥' },
+  { value: 'closing', label: '마감임박', icon: '⏰' },
+  { value: 'oldest', label: '오래된순', icon: '📅' },
+];
+
 export default function MarketsPage() {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
@@ -37,16 +45,27 @@ export default function MarketsPage() {
   const [loading, setLoading] = useState(true);
   const [showPredictionModal, setShowPredictionModal] = useState(false);
   const [selectedMarket, setSelectedMarket] = useState<{ id: string; option: 'yes' | 'no' } | null>(null);
+  
+  // 검색 & 정렬 상태
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [sortBy, setSortBy] = useState('latest');
+  const [showSortMenu, setShowSortMenu] = useState(false);
 
   // 마켓 데이터 가져오기
-  const fetchMarkets = async () => {
+  const fetchMarkets = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
         category: selectedCategory,
         limit: '20',
         offset: '0',
+        sort: sortBy,
       });
+
+      if (searchQuery.trim()) {
+        params.set('search', searchQuery.trim());
+      }
 
       const response = await fetch(`/api/markets?${params}`);
       const data = await response.json();
@@ -61,11 +80,23 @@ export default function MarketsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedCategory, sortBy, searchQuery]);
 
   useEffect(() => {
     fetchMarkets();
-  }, [selectedCategory]);
+  }, [fetchMarkets]);
+
+  // 검색 실행
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearchQuery(searchInput);
+  };
+
+  // 검색 초기화
+  const clearSearch = () => {
+    setSearchInput('');
+    setSearchQuery('');
+  };
 
   // 예측 참여 핸들러
   const handlePredict = async (marketId: string, option: 'yes' | 'no') => {
@@ -140,6 +171,84 @@ export default function MarketsPage() {
             )}
           </div>
 
+          {/* 검색 & 정렬 바 */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-4 sm:mb-6">
+            {/* 검색 입력 */}
+            <form onSubmit={handleSearch} className="flex-1 relative">
+              <div className="relative">
+                <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/40" />
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="마켓 검색..."
+                  className="w-full pl-11 pr-10 py-3 bg-background/60 border border-primary/20 rounded-xl sm:rounded-2xl text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all text-sm sm:text-base"
+                />
+                {searchInput && (
+                  <button
+                    type="button"
+                    onClick={clearSearch}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-foreground/40 hover:text-foreground/70 transition-colors"
+                  >
+                    <FaTimes />
+                  </button>
+                )}
+              </div>
+            </form>
+
+            {/* 정렬 드롭다운 */}
+            <div className="relative">
+              <button
+                onClick={() => setShowSortMenu(!showSortMenu)}
+                className="flex items-center gap-2 px-4 py-3 bg-background/60 border border-primary/20 rounded-xl sm:rounded-2xl text-foreground/80 hover:border-primary/40 transition-all text-sm sm:text-base whitespace-nowrap"
+              >
+                <FaSortAmountDown className="text-primary" />
+                <span>{SORT_OPTIONS.find(o => o.value === sortBy)?.label}</span>
+              </button>
+
+              {showSortMenu && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setShowSortMenu(false)} 
+                  />
+                  <div className="absolute right-0 mt-2 w-44 bg-background/95 backdrop-blur-xl border border-primary/20 rounded-xl shadow-xl z-50 overflow-hidden animate-fade-in-scale">
+                    {SORT_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          setSortBy(option.value);
+                          setShowSortMenu(false);
+                        }}
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors text-sm ${
+                          sortBy === option.value
+                            ? 'bg-primary/10 text-primary'
+                            : 'text-foreground/70 hover:bg-primary/5 hover:text-foreground'
+                        }`}
+                      >
+                        <span>{option.icon}</span>
+                        <span>{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* 검색 결과 표시 */}
+          {searchQuery && (
+            <div className="flex items-center gap-2 mb-4 text-sm text-foreground/60">
+              <span>"{searchQuery}" 검색 결과</span>
+              <button
+                onClick={clearSearch}
+                className="px-2 py-1 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors text-xs"
+              >
+                검색 초기화
+              </button>
+            </div>
+          )}
+
           {/* 카테고리 필터 - 모바일 스크롤 */}
           <div className="mb-4 sm:mb-8 -mx-3 sm:mx-0 px-3 sm:px-0 overflow-x-auto scrollbar-hide">
             <CategoryFilter
@@ -152,7 +261,9 @@ export default function MarketsPage() {
           {loading ? (
             <MarketGridSkeleton count={6} />
           ) : markets.length === 0 ? (
-            selectedCategory === 'all' ? (
+            searchQuery ? (
+              <EmptySearchResults query={searchQuery} />
+            ) : selectedCategory === 'all' ? (
               <EmptyMarkets isAuthenticated={isAuthenticated} />
             ) : (
               <EmptyFilterResults />

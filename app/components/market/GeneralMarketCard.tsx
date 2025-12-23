@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { FaClock, FaUsers, FaCoins } from 'react-icons/fa';
+import { FaClock, FaUsers, FaShare } from 'react-icons/fa';
+import ShareModal from './ShareModal';
 
 interface Market {
   id: string;
@@ -32,7 +33,7 @@ export default function GeneralMarketCard({
   onPredict,
   showActions = true,
 }: GeneralMarketCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // 카테고리 아이콘 매핑
   const getCategoryIcon = (slug: string) => {
@@ -177,7 +178,27 @@ export default function GeneralMarketCard({
             <span className="hidden sm:inline">참여 </span>+5P / <span className="hidden sm:inline">적중 </span>+20P
           </span>
         </div>
+
+        {/* 공유 버튼 */}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowShareModal(true);
+          }}
+          className="p-2 hover:bg-primary/10 rounded-lg transition-colors text-foreground/50 hover:text-primary"
+          title="공유하기"
+        >
+          <FaShare className="text-sm" />
+        </button>
       </div>
+
+      {/* 공유 모달 */}
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        market={market}
+      />
     </div>
   );
 }

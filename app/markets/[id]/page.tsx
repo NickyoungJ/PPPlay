@@ -5,10 +5,11 @@ import { useRouter, useParams } from 'next/navigation';
 import Header from '../../components/layout/Header';
 import Footer from '../../components/layout/Footer';
 import { useAuth } from '../../hooks/useAuth';
-import { FaArrowLeft, FaClock, FaUsers, FaCoins, FaSpinner, FaCheckCircle } from 'react-icons/fa';
+import { FaArrowLeft, FaClock, FaUsers, FaCoins, FaSpinner, FaCheckCircle, FaShare } from 'react-icons/fa';
 import { supabaseClient } from '@/utils/supabase/client';
 import { showVoteSuccess, showError, showWarning } from '@/utils/toast';
 import { MarketDetailSkeleton } from '../../components/ui/Skeleton';
+import ShareModal from '../../components/market/ShareModal';
 
 interface MarketDetail {
   id: string;
@@ -39,6 +40,7 @@ export default function MarketDetailPage() {
   const [selectedOption, setSelectedOption] = useState<'yes' | 'no' | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // 마켓 상세 정보 가져오기
   const fetchMarketDetail = async () => {
@@ -230,16 +232,27 @@ export default function MarketDetailPage() {
               </p>
             )}
 
-            {/* 통계 */}
-            <div className="flex items-center gap-8 text-foreground/70">
-              <div className="flex items-center gap-2">
-                <FaUsers className="text-primary" />
-                <span className="font-semibold">{market.total_participants.toLocaleString()}명 투표</span>
+            {/* 통계 & 공유 */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4 sm:gap-8 text-foreground/70">
+                <div className="flex items-center gap-2">
+                  <FaUsers className="text-primary" />
+                  <span className="font-semibold">{market.total_participants.toLocaleString()}명 투표</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FaCoins className="text-accent" />
+                  <span className="font-semibold">참여 +5P / 적중 +20P</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <FaCoins className="text-accent" />
-                <span className="font-semibold">참여 +5P / 적중 +20P</span>
-              </div>
+
+              {/* 공유 버튼 */}
+              <button
+                onClick={() => setShowShareModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl transition-all btn-press"
+              >
+                <FaShare />
+                <span className="hidden sm:inline font-medium">공유</span>
+              </button>
             </div>
           </div>
 
@@ -430,6 +443,15 @@ export default function MarketDetailPage() {
       </main>
 
       <Footer />
+
+      {/* 공유 모달 */}
+      {market && (
+        <ShareModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          market={market}
+        />
+      )}
     </div>
   );
 }
