@@ -5,11 +5,13 @@ import { useRouter, useParams } from 'next/navigation';
 import Header from '../../components/layout/Header';
 import Footer from '../../components/layout/Footer';
 import { useAuth } from '../../hooks/useAuth';
-import { FaArrowLeft, FaClock, FaUsers, FaCoins, FaSpinner, FaCheckCircle, FaShare } from 'react-icons/fa';
+import { FaArrowLeft, FaClock, FaUsers, FaCoins, FaSpinner, FaCheckCircle, FaShare, FaComments, FaHistory } from 'react-icons/fa';
 import { supabaseClient } from '@/utils/supabase/client';
 import { showVoteSuccess, showError, showWarning } from '@/utils/toast';
 import { MarketDetailSkeleton } from '../../components/ui/Skeleton';
 import ShareModal from '../../components/market/ShareModal';
+import CommentSection from '../../components/market/CommentSection';
+import ActivitySection from '../../components/market/ActivitySection';
 
 interface MarketDetail {
   id: string;
@@ -41,6 +43,7 @@ export default function MarketDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'comments' | 'activity'>('comments');
 
   // 마켓 상세 정보 가져오기
   const fetchMarketDetail = async () => {
@@ -439,6 +442,44 @@ export default function MarketDetailPage() {
               </p>
             </div>
           )}
+
+          {/* 댓글 & 액티비티 탭 */}
+          <div className="mt-8 bg-background/40 backdrop-blur-xl border border-primary/20 rounded-3xl overflow-hidden">
+            {/* 탭 헤더 */}
+            <div className="flex border-b border-primary/20">
+              <button
+                onClick={() => setActiveTab('comments')}
+                className={`flex-1 flex items-center justify-center gap-2 py-4 px-6 font-semibold transition-all ${
+                  activeTab === 'comments'
+                    ? 'bg-primary/10 text-primary border-b-2 border-primary'
+                    : 'text-foreground/60 hover:bg-primary/5 hover:text-foreground/80'
+                }`}
+              >
+                <FaComments />
+                <span>댓글</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('activity')}
+                className={`flex-1 flex items-center justify-center gap-2 py-4 px-6 font-semibold transition-all ${
+                  activeTab === 'activity'
+                    ? 'bg-primary/10 text-primary border-b-2 border-primary'
+                    : 'text-foreground/60 hover:bg-primary/5 hover:text-foreground/80'
+                }`}
+              >
+                <FaHistory />
+                <span>투표 기록</span>
+              </button>
+            </div>
+
+            {/* 탭 컨텐츠 */}
+            <div className="p-6">
+              {activeTab === 'comments' ? (
+                <CommentSection marketId={marketId} />
+              ) : (
+                <ActivitySection marketId={marketId} />
+              )}
+            </div>
+          </div>
         </div>
       </main>
 
