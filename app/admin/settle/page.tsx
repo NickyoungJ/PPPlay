@@ -36,7 +36,6 @@ export default function SettleMarketsPage() {
   const [selectedResult, setSelectedResult] = useState<{ [key: string]: 'yes' | 'no' | 'cancelled' }>({});
 
   useEffect(() => {
-    // 🔥 임시: 관리자 인증 비활성화 (테스트용)
     fetchClosedMarkets();
   }, []);
 

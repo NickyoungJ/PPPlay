@@ -73,16 +73,13 @@ export default function MarketDetailPage() {
     }
   }, [marketId]);
 
-  // 투표 제출 (간소화)
+  // 투표 제출
   const handleSubmitVote = async () => {
-    // 🔥 임시: 로그인 체크 비활성화 (테스트용)
-    /*
     if (!isAuthenticated) {
-      alert('로그인이 필요합니다.');
+      showWarning('로그인이 필요합니다.');
       router.push('/auth');
       return;
     }
-    */
 
     if (!selectedOption) {
       showWarning('Yes 또는 No를 선택해주세요.');
