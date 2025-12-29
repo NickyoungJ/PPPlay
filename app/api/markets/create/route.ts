@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { validateContent } from '@/utils/contentFilter';
+import { checkRateLimit } from '@/utils/rateLimit';
 
 const MARKET_CREATION_COST = 1000;
 
@@ -38,6 +40,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: '마감 시간은 현재 시간보다 미래여야 합니다.' },
         { status: 400 }
+      );
+    }
+
+    // 🛡️ 콘텐츠 필터링 (제목)
+    const titleValidation = validateContent(title);
+    if (!titleValidation.valid) {
+      return NextResponse.json(
+        { error: `제목: ${titleValidation.error}` },
+        { status: 400 }
+      );
+    }
+
+    // 🛡️ 콘텐츠 필터링 (설명 - 있는 경우만)
+    if (description) {
+      const descValidation = validateContent(description);
+      if (!descValidation.valid) {
+        return NextResponse.json(
+          { error: `설명: ${descValidation.error}` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // 🛡️ Rate Limit 체크 (1시간에 3개)
+    const rateLimit = checkRateLimit(user.id, 'marketCreate');
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: rateLimit.error },
+        { status: 429 }
       );
     }
 

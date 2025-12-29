@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { validateContent } from '@/utils/contentFilter';
+import { checkRateLimit } from '@/utils/rateLimit';
 
 // 댓글 목록 조회
 export async function GET(request: NextRequest) {
@@ -114,6 +116,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: '댓글은 500자 이내로 작성해주세요.' },
         { status: 400 }
+      );
+    }
+
+    // 🛡️ 콘텐츠 필터링 (욕설/비속어 체크)
+    const contentValidation = validateContent(content);
+    if (!contentValidation.valid) {
+      return NextResponse.json(
+        { error: contentValidation.error },
+        { status: 400 }
+      );
+    }
+
+    // 🛡️ Rate Limit 체크 (10초에 1개)
+    const rateLimit = checkRateLimit(user.id, 'comment');
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: rateLimit.error },
+        { status: 429 }
       );
     }
 
