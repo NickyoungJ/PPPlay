@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { validateContent } from '@/utils/contentFilter';
 
 // 마이페이지 데이터 조회 API
 export async function GET(request: NextRequest) {
@@ -19,10 +20,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 1. 포인트 정보 조회
+    // 1. 포인트 정보 조회 (닉네임 포함)
     const { data: userPoints, error: pointsError } = await supabase
       .from('user_points')
-      .select('total_points, available_points, daily_votes, total_predictions, correct_predictions, win_rate')
+      .select('total_points, available_points, daily_votes, total_predictions, correct_predictions, win_rate, nickname')
       .eq('user_id', user.id)
       .single();
 
@@ -97,6 +98,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       profile: {
+        // 사용자 정보
+        nickname: userPoints?.nickname || null,
+        email: user.email,
         // 포인트 현황
         points: {
           total: userPoints?.total_points || 0,
@@ -118,6 +122,126 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('프로필 조회 API 오류:', error);
+    return NextResponse.json(
+      { error: '서버 오류가 발생했습니다.' },
+      { status: 500 }
+    );
+  }
+}
+
+// 닉네임 수정 API
+export async function PATCH(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    
+    // 인증 확인
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '로그인이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { nickname } = body;
+
+    // 닉네임 유효성 검사
+    if (nickname !== null && nickname !== undefined) {
+      // 빈 문자열은 null로 처리 (닉네임 삭제)
+      const trimmedNickname = nickname?.trim() || null;
+      
+      if (trimmedNickname) {
+        // 길이 검사 (2-12자)
+        if (trimmedNickname.length < 2 || trimmedNickname.length > 12) {
+          return NextResponse.json(
+            { error: '닉네임은 2-12자 사이여야 합니다.' },
+            { status: 400 }
+          );
+        }
+
+        // 허용 문자 검사 (한글, 영문, 숫자, 언더스코어)
+        const nicknameRegex = /^[가-힣a-zA-Z0-9_]+$/;
+        if (!nicknameRegex.test(trimmedNickname)) {
+          return NextResponse.json(
+            { error: '닉네임은 한글, 영문, 숫자, 언더스코어만 사용 가능합니다.' },
+            { status: 400 }
+          );
+        }
+
+        // 금지어 검사
+        const forbiddenWords = ['admin', '관리자', '운영자', '시스템', 'system', 'ppplay'];
+        if (forbiddenWords.some(word => trimmedNickname.toLowerCase().includes(word))) {
+          return NextResponse.json(
+            { error: '사용할 수 없는 닉네임입니다.' },
+            { status: 400 }
+          );
+        }
+
+        // 욕설/비속어 검사
+        const contentValidation = validateContent(trimmedNickname);
+        if (!contentValidation.valid) {
+          return NextResponse.json(
+            { error: '부적절한 닉네임입니다.' },
+            { status: 400 }
+          );
+        }
+
+        // 중복 검사
+        const { data: existingUser } = await supabase
+          .from('user_points')
+          .select('user_id')
+          .eq('nickname', trimmedNickname)
+          .neq('user_id', user.id)
+          .single();
+
+        if (existingUser) {
+          return NextResponse.json(
+            { error: '이미 사용 중인 닉네임입니다.' },
+            { status: 400 }
+          );
+        }
+      }
+
+      // 닉네임 업데이트
+      const { error: updateError } = await supabase
+        .from('user_points')
+        .update({ nickname: trimmedNickname })
+        .eq('user_id', user.id);
+
+      if (updateError) {
+        // user_points 레코드가 없으면 생성
+        const { error: insertError } = await supabase
+          .from('user_points')
+          .insert({ user_id: user.id, nickname: trimmedNickname });
+
+        if (insertError) {
+          console.error('닉네임 저장 오류:', insertError);
+          return NextResponse.json(
+            { error: '닉네임 저장에 실패했습니다.' },
+            { status: 500 }
+          );
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        nickname: trimmedNickname,
+        message: trimmedNickname ? '닉네임이 설정되었습니다.' : '닉네임이 삭제되었습니다.'
+      });
+    }
+
+    return NextResponse.json(
+      { error: '수정할 정보가 없습니다.' },
+      { status: 400 }
+    );
+
+  } catch (error) {
+    console.error('프로필 수정 API 오류:', error);
     return NextResponse.json(
       { error: '서버 오류가 발생했습니다.' },
       { status: 500 }

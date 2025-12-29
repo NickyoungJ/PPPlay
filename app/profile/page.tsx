@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
-import { FaCoins, FaVoteYea, FaCheckCircle, FaChartLine, FaHistory, FaArrowUp, FaArrowDown, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaCoins, FaVoteYea, FaCheckCircle, FaChartLine, FaHistory, FaArrowUp, FaArrowDown, FaChevronLeft, FaChevronRight, FaUser, FaPen } from 'react-icons/fa';
 import { ProfileSkeleton } from '../components/ui/Skeleton';
 import { EmptyVoteHistory, EmptyPointHistory } from '../components/ui/EmptyState';
+import NicknameModal from '../components/profile/NicknameModal';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -20,6 +21,8 @@ interface PointTransaction {
 }
 
 interface ProfileData {
+  nickname: string | null;
+  email: string;
   points: {
     total: number;
     available: number;
@@ -53,6 +56,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showNicknameModal, setShowNicknameModal] = useState(false);
   
   // 페이지네이션 상태
   const [pointHistoryPage, setPointHistoryPage] = useState(1);
@@ -61,6 +65,13 @@ export default function ProfilePage() {
   useEffect(() => {
     fetchProfile();
   }, []);
+
+  // 닉네임 업데이트 핸들러
+  const handleNicknameUpdate = (newNickname: string | null) => {
+    if (profile) {
+      setProfile({ ...profile, nickname: newNickname });
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -244,6 +255,44 @@ export default function ProfilePage() {
             <p className="text-foreground/70 text-sm sm:text-lg">
               내 포인트와 투표 통계를 확인하세요
             </p>
+          </div>
+
+          {/* 프로필 정보 - 닉네임 */}
+          <div className="bg-gradient-to-br from-accent/20 to-accent/5 backdrop-blur-xl border border-accent/30 rounded-2xl sm:rounded-3xl p-4 sm:p-6 mb-4 sm:mb-8 opacity-0 animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                {/* 프로필 아이콘 */}
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-accent/20 flex items-center justify-center">
+                  <FaUser className="text-2xl sm:text-3xl text-accent" />
+                </div>
+                
+                {/* 닉네임 & 이메일 */}
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl sm:text-2xl font-bold text-foreground">
+                      {profile.nickname || '닉네임 없음'}
+                    </h2>
+                    {!profile.nickname && (
+                      <span className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-500 rounded-full">
+                        설정 필요
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-foreground/50 text-sm mt-0.5">
+                    {profile.email}
+                  </p>
+                </div>
+              </div>
+              
+              {/* 편집 버튼 */}
+              <button
+                onClick={() => setShowNicknameModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-accent/20 hover:bg-accent/30 text-accent rounded-xl font-medium transition-all btn-press"
+              >
+                <FaPen className="text-sm" />
+                <span className="hidden sm:inline">수정</span>
+              </button>
+            </div>
           </div>
 
           {/* 포인트 현황 - 모바일 최적화 */}
@@ -454,6 +503,14 @@ export default function ProfilePage() {
       </main>
 
       <Footer />
+
+      {/* 닉네임 설정 모달 */}
+      <NicknameModal
+        isOpen={showNicknameModal}
+        onClose={() => setShowNicknameModal(false)}
+        currentNickname={profile?.nickname || null}
+        onUpdate={handleNicknameUpdate}
+      />
     </div>
   );
 }

@@ -24,7 +24,8 @@ export async function GET(request: NextRequest) {
           total_points,
           total_votes,
           correct_votes,
-          consecutive_login_days
+          consecutive_login_days,
+          nickname
         `)
         .order('total_points', { ascending: false })
         .limit(limit);
@@ -37,7 +38,8 @@ export async function GET(request: NextRequest) {
           total_points,
           total_votes,
           correct_votes,
-          consecutive_login_days
+          consecutive_login_days,
+          nickname
         `)
         .gte('total_votes', 10)
         .order('correct_votes', { ascending: false })
@@ -51,7 +53,8 @@ export async function GET(request: NextRequest) {
           total_points,
           total_votes,
           correct_votes,
-          consecutive_login_days
+          consecutive_login_days,
+          nickname
         `)
         .order('consecutive_login_days', { ascending: false })
         .limit(limit);
@@ -72,37 +75,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 사용자 정보 가져오기 (auth.users에서)
-    const userIds = rankings?.map(r => r.user_id) || [];
-    
-    // 사용자 메타데이터 조회를 위한 별도 쿼리
-    const enrichedRankings = await Promise.all(
-      (rankings || []).map(async (ranking, index) => {
-        // profiles 테이블이 있다면 거기서 가져오고, 없으면 기본값 사용
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('nickname, avatar_url')
-          .eq('id', ranking.user_id)
-          .single();
+    // 랭킹 데이터 가공 (닉네임은 user_points에서 직접 가져옴)
+    const enrichedRankings = (rankings || []).map((ranking, index) => {
+      const winRate = ranking.total_votes > 0 
+        ? Math.round((ranking.correct_votes / ranking.total_votes) * 100) 
+        : 0;
 
-        const winRate = ranking.total_votes > 0 
-          ? Math.round((ranking.correct_votes / ranking.total_votes) * 100) 
-          : 0;
-
-        return {
-          rank: index + 1,
-          userId: ranking.user_id,
-          nickname: profile?.nickname || `User${ranking.user_id.slice(0, 4)}`,
-          avatarUrl: profile?.avatar_url || null,
-          totalPoints: ranking.total_points,
-          totalVotes: ranking.total_votes,
-          correctVotes: ranking.correct_votes,
-          winRate,
-          consecutiveDays: ranking.consecutive_login_days || 0,
-          isCurrentUser: user?.id === ranking.user_id,
-        };
-      })
-    );
+      return {
+        rank: index + 1,
+        userId: ranking.user_id,
+        nickname: ranking.nickname || `익명${ranking.user_id.slice(0, 4)}`,
+        avatarUrl: null,
+        totalPoints: ranking.total_points,
+        totalVotes: ranking.total_votes,
+        correctVotes: ranking.correct_votes,
+        winRate,
+        consecutiveDays: ranking.consecutive_login_days || 0,
+        isCurrentUser: user?.id === ranking.user_id,
+      };
+    });
 
     // 현재 사용자의 랭킹 찾기
     let myRanking = null;
@@ -120,7 +111,6 @@ export async function GET(request: NextRequest) {
 
         if (myData) {
           // 내 순위 계산
-          let rankQuery;
           if (type === 'points') {
             const { count } = await supabase
               .from('user_points')
@@ -130,7 +120,7 @@ export async function GET(request: NextRequest) {
             myRanking = {
               rank: (count || 0) + 1,
               userId: user.id,
-              nickname: `User${user.id.slice(0, 4)}`,
+              nickname: myData.nickname || `익명${user.id.slice(0, 4)}`,
               avatarUrl: null,
               totalPoints: myData.total_points,
               totalVotes: myData.total_votes,
