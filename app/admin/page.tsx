@@ -7,7 +7,8 @@ import Footer from '../components/layout/Footer';
 // import { useAuth } from '../hooks/useAuth'; // 🔥 임시: 리다이렉트 방지
 import { 
   FaCheckCircle, FaTimesCircle, FaSpinner, FaChartBar, 
-  FaUsers, FaCoins, FaExclamationTriangle, FaClipboardCheck 
+  FaUsers, FaCoins, FaExclamationTriangle, FaClipboardCheck,
+  FaShieldAlt
 } from 'react-icons/fa';
 import { showSuccess, showError } from '@/utils/toast';
 
@@ -238,6 +239,13 @@ export default function AdminDashboard() {
           >
             <FaClipboardCheck className="inline mr-2" />
             결과 확정
+          </button>
+          <button
+            onClick={() => router.push('/admin/content')}
+            className="px-6 py-3 font-medium transition-colors border-b-2 border-transparent text-gray-600 hover:text-gray-900 whitespace-nowrap"
+          >
+            <FaShieldAlt className="inline mr-2" />
+            콘텐츠 관리
           </button>
         </div>
 

@@ -141,6 +141,14 @@ export default function TermsPage() {
                   <span className="text-primary font-semibold">2.</span>
                   <span>부정행위 적발 시 포인트 회수 및 계정 정지 조치가 취해질 수 있습니다.</span>
                 </li>
+                <li className="flex gap-2">
+                  <span className="text-primary font-semibold">3.</span>
+                  <span><strong className="text-accent">부적절한 콘텐츠(댓글, 마켓 등)는 사전 통보 없이 삭제될 수 있습니다.</strong></span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-primary font-semibold">4.</span>
+                  <span>삭제 대상: 욕설, 비방, 혐오 표현, 허위정보, 불법 콘텐츠, 스팸성 게시물 등</span>
+                </li>
               </ul>
             </section>
 
